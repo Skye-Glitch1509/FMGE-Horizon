@@ -8,6 +8,7 @@ export default function Home() {
     pain: "",
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -15,6 +16,8 @@ export default function Home() {
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setLoading(true);
+
     fetch("https://script.google.com/macros/s/AKfycbwyj5vYeCLiIpoeK55F2wcRuMcOWFQM6BeMi3q8Zii-mbtASE4ht06v8KsqFhKt2oY3xg/exec", {
       method: "POST",
       mode: "no-cors",
@@ -29,8 +32,10 @@ export default function Home() {
     })
     .then(() => {
       setSubmitted(true);
+      setLoading(false);
     })
     .catch(() => {
+      setLoading(false);
       alert("Failed to register. Please try again!");
     });
   }
@@ -116,6 +121,7 @@ export default function Home() {
                 value={form.name}
                 onChange={handleChange}
                 autoComplete="off"
+                disabled={loading}
               />
             </div>
             <div style={{ marginBottom: "14px" }}>
@@ -135,6 +141,7 @@ export default function Home() {
                 value={form.contact}
                 onChange={handleChange}
                 autoComplete="off"
+                disabled={loading}
               />
             </div>
             <div style={{ marginBottom: "16px" }}>
@@ -157,25 +164,28 @@ export default function Home() {
                 onChange={handleChange}
                 maxLength={100}
                 autoComplete="off"
+                disabled={loading}
               />
             </div>
             <button
               type="submit"
+              disabled={loading}
               style={{
-                background: "#3292fe",
+                background: loading ? "#666a80" : "#3292fe",
                 color: "white",
                 padding: "13px 29px",
                 border: "none",
                 borderRadius: "7px",
                 fontWeight: "bold",
-                cursor: "pointer",
+                cursor: loading ? "not-allowed" : "pointer",
                 fontSize: "1.09rem",
                 marginTop: "2px",
                 boxShadow: "0 4px 14px 0 rgba(50,146,254,0.08)",
-                letterSpacing: "0.7px"
+                letterSpacing: "0.7px",
+                opacity: loading ? 0.7 : 1
               }}
             >
-              🚀 Get Early Access
+              {loading ? "Submitting..." : "🚀 Get Early Access"}
             </button>
           </form>
         ) : (
