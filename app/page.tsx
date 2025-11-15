@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 
 export default function Home() {
   const [form, setForm] = useState({
@@ -9,11 +9,11 @@ export default function Home() {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  function handleChange(e) {
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
-  function handleSubmit(e) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     // Replace with API integration here (Supabase, Firebase, etc)
     setSubmitted(true);
