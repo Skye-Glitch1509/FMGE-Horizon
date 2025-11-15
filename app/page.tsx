@@ -14,26 +14,27 @@ export default function Home() {
   }
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  e.preventDefault();
 
-    fetch("https://script.google.com/macros/s/AKfycbwyj5vYeCLiIpoeK55F2wcRuMcOWFQM6BeMi3q8Zii-mbtASE4ht06v8KsqFhKt2oY3xg/exec", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        Name: form.name,
-        Contact: form.contact,
-        Pain_Point: form.pain
-      })
+  fetch("https://script.google.com/macros/s/AKfycbwyj5vYeCLiIpoeK55F2wcRuMcOWFQM6BeMi3q8Zii-mbtASE4ht06v8KsqFhKt2oY3xg/exec", {
+    method: "POST",
+    mode: "no-cors", // <-- add this line
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      Name: form.name,
+      Contact: form.contact,
+      Pain_Point: form.pain
     })
-      .then(() => {
-        setSubmitted(true);
-      })
-      .catch(() => {
-        alert("Failed to register. Please try again!");
-      });
-  }
+  })
+    .then(() => {
+      setSubmitted(true);
+    })
+    .catch(() => {
+      alert("Failed to register. Please try again!");
+    });
+}
 
   return (
     <div style={{
