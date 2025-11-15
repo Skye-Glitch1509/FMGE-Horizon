@@ -14,167 +14,187 @@ export default function Home() {
   }
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
-  e.preventDefault();
-
-  fetch("https://script.google.com/macros/s/AKfycbwyj5vYeCLiIpoeK55F2wcRuMcOWFQM6BeMi3q8Zii-mbtASE4ht06v8KsqFhKt2oY3xg/exec", {
-    method: "POST",
-    mode: "no-cors", // <-- add this line
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      Name: form.name,
-      Contact: form.contact,
-      Pain_Point: form.pain
+    e.preventDefault();
+    fetch("https://script.google.com/macros/s/AKfycbwyj5vYeCLiIpoeK55F2wcRuMcOWFQM6BeMi3q8Zii-mbtASE4ht06v8KsqFhKt2oY3xg/exec", {
+      method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        Name: form.name,
+        Contact: form.contact,
+        Pain_Point: form.pain
+      })
     })
-  })
     .then(() => {
       setSubmitted(true);
     })
     .catch(() => {
       alert("Failed to register. Please try again!");
     });
-}
+  }
 
   return (
     <div style={{
       fontFamily: "Inter, Arial, sans-serif",
-      maxWidth: "560px",
-      margin: "0 auto",
-      padding: "32px 12px"
+      minHeight: "100vh",
+      background: "linear-gradient(135deg, #e4ecfc 0%, #f6f6f6 100%)",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
     }}>
-      <h1 style={{
-        fontWeight: "800",
-        fontSize: "2.5rem",
-        marginBottom: "20px",
-        lineHeight: 1.2
-      }}>
-        Smarter FMGE Prep<br />Bring Clarity & Hope to Your Journey
-      </h1>
-      <h2 style={{
-        fontWeight: "500",
-        fontSize: "1.3rem",
-        marginBottom: "22px",
-        lineHeight: 1.35
-      }}>
-        Organize, track, and master all your FMGE study resources—with zero confusion and no switching apps.
-      </h2>
-      <p style={{
-        marginBottom: "25px",
-        color: "#1769aa",
-        fontWeight: "bold",
-        background: "#eaf3fa",
-        padding: "12px 15px",
-        borderRadius: "8px",
-      }}>
-        Created by a current FMGE student who knows exactly how overwhelming preparation can feel.
-      </p>
-      <ul style={{
-        marginBottom: "34px",
-        fontSize: "1rem",
-        lineHeight: 1.7,
-        paddingLeft: "20px"
-      }}>
-        <li style={{marginBottom:"9px"}}>Supercharge the tools you already use—no need to start over.</li>
-        <li style={{marginBottom:"9px"}}>Study Tracking: Know what's done, what's left, when to review.</li>
-        <li style={{marginBottom:"9px"}}>AI-Powered Planner: Personalized sessions for every FMGE topic.</li>
-        <li style={{marginBottom:"9px"}}>Spaced Repetition Engine: Never forget high-yield facts.</li>
-        <li style={{marginBottom:"9px"}}>Burnout Checks, Accountability, Peer Support.</li>
-        <li style={{marginBottom:"9px"}}>FMGE-Specific Analytics & Weak Area Spotting.</li>
-        <li style={{marginBottom:"9px"}}>Mobile-friendly, private, and totally free.</li>
-      </ul>
-      {submitted ? (
-        <div style={{ color: "green", fontWeight: "bold", fontSize: "1.1rem", marginBottom: "30px" }}>
-          🎉 Thank you for signing up! We'll be in touch soon.
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} style={{ marginBottom: "30px" }}>
-          <div style={{ marginBottom: "15px" }}>
-            <label>Name:</label><br />
-            <input
-              style={{
-                width: "100%",
-                padding: "8px",
-                marginTop: "3px",
-                background: "white",
-                color: "#2d2d2d",
-                borderRadius: "6px",
-                border: "1px solid #aaa"
-              }}
-              name="name"
-              required
-              value={form.name}
-              onChange={handleChange}
-              autoComplete="off"
-            />
-          </div>
-          <div style={{ marginBottom: "15px" }}>
-            <label>Email or WhatsApp number:</label><br />
-            <input
-              style={{
-                width: "100%",
-                padding: "8px",
-                marginTop: "3px",
-                background: "white",
-                color: "#2d2d2d",
-                borderRadius: "6px",
-                border: "1px solid #aaa"
-              }}
-              name="contact"
-              required
-              value={form.contact}
-              onChange={handleChange}
-              autoComplete="off"
-            />
-          </div>
-          <div style={{ marginBottom: "15px" }}>
-            <label>
-              What is the single biggest pain point you face in FMGE preparation right now?
-            </label><br />
-            <input
-              style={{
-                width: "100%",
-                padding: "8px",
-                marginTop: "3px",
-                background: "white",
-                color: "#2d2d2d",
-                borderRadius: "6px",
-                border: "1px solid #aaa"
-              }}
-              name="pain"
-              required
-              value={form.pain}
-              onChange={handleChange}
-              maxLength={100}
-              autoComplete="off"
-            />
-          </div>
-          <button
-            type="submit"
-            style={{
-              background: "#1769aa",
-              color: "white",
-              padding: "11px 22px",
-              border: "none",
-              borderRadius: "6px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              fontSize: "1.1rem",
-              marginTop: "10px"
-            }}
-          >
-            Sign Up for Early Access
-          </button>
-        </form>
-      )}
       <div style={{
-        marginTop: "10px",
+        maxWidth: "470px",
+        background: "#fff",
+        boxShadow: "0 8px 24px 0 rgba(34, 70, 190, 0.10)",
+        borderRadius: "20px",
+        marginTop: "50px",
+        marginBottom: "30px",
+        padding: "38px 28px",
+        border: "1px solid #f2f7fd"
+      }}>
+        <h1 style={{
+          fontWeight: "800",
+          fontSize: "2.15rem",
+          letterSpacing: "-1px",
+          color: "#194bb2",
+          marginBottom: "16px"
+        }}>
+          🗺️ FMGE Horizon
+        </h1>
+        <h2 style={{
+          fontWeight: "500",
+          fontSize: "1.22rem",
+          color: "#444",
+          marginBottom: "18px"
+        }}>
+          Prep with clarity, hope, and order—not chaos.
+        </h2>
+        <div style={{
+          background: "#eff8ff",
+          color: "#1769aa",
+          fontWeight: "bold",
+          padding: "12px 13px",
+          borderRadius: "8px",
+          marginBottom: "20px",
+          fontSize: "1.05rem"
+        }}>
+          Made by a current FMGE student who understands the struggle.
+        </div>
+        <ul style={{
+          marginBottom: "27px",
+          fontSize: "1.1rem",
+          lineHeight: 1.7,
+          paddingLeft: "24px"
+        }}>
+          <li style={{marginBottom:"7px"}}>✅ Get more out of what you already use—no need to start over.</li>
+          <li style={{marginBottom:"7px"}}>📈 Track what’s done, what’s next, and when to review.</li>
+          <li style={{marginBottom:"7px"}}>🧠 Personalized, AI-powered session planner.</li>
+          <li style={{marginBottom:"7px"}}>⏰ Spaced repetition for high-yield recall.</li>
+          <li style={{marginBottom:"7px"}}>🤝 Burnout checks, accountability, peer support.</li>
+          <li style={{marginBottom:"7px"}}>🔎 FMGE-specific analytics.</li>
+        </ul>
+        <hr style={{margin:"18px 0"}} />
+        {!submitted ? (
+          <form onSubmit={handleSubmit} style={{ marginBottom: "10px", marginTop: "10px" }}>
+            <div style={{ marginBottom: "14px" }}>
+              <label style={{fontWeight:"500"}}>Name:</label><br />
+              <input
+                style={{
+                  width: "100%",
+                  padding: "9px",
+                  marginTop: "5px",
+                  background: "#f8fafc",
+                  color: "#2d2d2d",
+                  borderRadius: "6px",
+                  border: "1px solid #dbeafe"
+                }}
+                name="name"
+                required
+                value={form.name}
+                onChange={handleChange}
+                autoComplete="off"
+              />
+            </div>
+            <div style={{ marginBottom: "14px" }}>
+              <label style={{fontWeight:"500"}}>Email or WhatsApp number:</label><br />
+              <input
+                style={{
+                  width: "100%",
+                  padding: "9px",
+                  marginTop: "5px",
+                  background: "#f8fafc",
+                  color: "#2d2d2d",
+                  borderRadius: "6px",
+                  border: "1px solid #dbeafe"
+                }}
+                name="contact"
+                required
+                value={form.contact}
+                onChange={handleChange}
+                autoComplete="off"
+              />
+            </div>
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{fontWeight:"500"}}>
+                What’s your biggest FMGE pain point right now?
+              </label><br />
+              <input
+                style={{
+                  width: "100%",
+                  padding: "9px",
+                  marginTop: "5px",
+                  background: "#f8fafc",
+                  color: "#2d2d2d",
+                  borderRadius: "6px",
+                  border: "1px solid #dbeafe"
+                }}
+                name="pain"
+                required
+                value={form.pain}
+                onChange={handleChange}
+                maxLength={100}
+                autoComplete="off"
+              />
+            </div>
+            <button
+              type="submit"
+              style={{
+                background: "#194bb2",
+                color: "white",
+                padding: "13px 29px",
+                border: "none",
+                borderRadius: "7px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                fontSize: "1.09rem",
+                marginTop: "2px",
+                boxShadow: "0 4px 14px 0 rgba(25, 75, 178, 0.08)"
+              }}
+            >
+              🚀 Get Early Access
+            </button>
+          </form>
+        ) : (
+          <div style={{ color: "green", fontWeight: "bold", fontSize: "1.1rem", marginBottom: "20px", textAlign: "center" }}>
+            🎉 Thank you for signing up! We'll be in touch soon.
+          </div>
+        )}
+      </div>
+      <div style={{
+        maxWidth: "420px",
         fontStyle: "italic",
-        fontSize: "1.06rem",
-        color: "#444"
+        fontSize: "1.09rem",
+        color: "#426193",
+        background: "#e8f0fe",
+        borderRadius: "10px",
+        padding: "18px 14px",
+        marginBottom: "36px",
+        boxShadow: "0 2px 20px 0 rgba(25, 75, 178, 0.05)"
       }}>
         No more switching tabs or feeling lost.<br />
-        Prep with clarity, hope, and a platform that finally understands FMGE.
+        Discover clarity, community, and a platform that finally understands FMGE.
       </div>
     </div>
   );
