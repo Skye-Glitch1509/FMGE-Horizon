@@ -39,41 +39,41 @@ export default function Home() {
     <div style={{
       fontFamily: "Inter, Arial, sans-serif",
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #e4ecfc 0%, #f6f6f6 100%)",
+      background: "linear-gradient(145deg, #121421 0%, #23263b 100%)",
       display: "flex",
       flexDirection: "column",
       alignItems: "center"
     }}>
       <div style={{
         maxWidth: "470px",
-        background: "#fff",
-        boxShadow: "0 8px 24px 0 rgba(34, 70, 190, 0.10)",
+        background: "#181c2f",
+        boxShadow: "0 8px 28px 0 rgba(34, 70, 190, 0.11)",
         borderRadius: "20px",
-        marginTop: "50px",
-        marginBottom: "30px",
-        padding: "38px 28px",
-        border: "1px solid #f2f7fd"
+        marginTop: "54px",
+        marginBottom: "32px",
+        padding: "40px 28px 32px 28px",
+        border: "1px solid #262b47"
       }}>
         <h1 style={{
           fontWeight: "800",
           fontSize: "2.15rem",
           letterSpacing: "-1px",
-          color: "#194bb2",
-          marginBottom: "16px"
+          color: "#a6c7ff",
+          marginBottom: "18px"
         }}>
           🗺️ FMGE Horizon
         </h1>
         <h2 style={{
           fontWeight: "500",
           fontSize: "1.22rem",
-          color: "#444",
+          color: "#d0d8ed",
           marginBottom: "18px"
         }}>
           Prep with clarity, hope, and order—not chaos.
         </h2>
         <div style={{
-          background: "#eff8ff",
-          color: "#1769aa",
+          background: "#263469",
+          color: "#79a6ff",
           fontWeight: "bold",
           padding: "12px 13px",
           borderRadius: "8px",
@@ -86,7 +86,8 @@ export default function Home() {
           marginBottom: "27px",
           fontSize: "1.1rem",
           lineHeight: 1.7,
-          paddingLeft: "24px"
+          paddingLeft: "24px",
+          color: "#eaeefa"
         }}>
           <li style={{marginBottom:"7px"}}>✅ Get more out of what you already use—no need to start over.</li>
           <li style={{marginBottom:"7px"}}>📈 Track what’s done, what’s next, and when to review.</li>
@@ -95,20 +96,20 @@ export default function Home() {
           <li style={{marginBottom:"7px"}}>🤝 Burnout checks, accountability, peer support.</li>
           <li style={{marginBottom:"7px"}}>🔎 FMGE-specific analytics.</li>
         </ul>
-        <hr style={{margin:"18px 0"}} />
+        <hr style={{margin:"18px 0", borderColor:"#23263b"}} />
         {!submitted ? (
           <form onSubmit={handleSubmit} style={{ marginBottom: "10px", marginTop: "10px" }}>
             <div style={{ marginBottom: "14px" }}>
-              <label style={{fontWeight:"500"}}>Name:</label><br />
+              <label style={{fontWeight:"500", color:"#c7dafb"}}>Name:</label><br />
               <input
                 style={{
                   width: "100%",
                   padding: "9px",
                   marginTop: "5px",
-                  background: "#f8fafc",
-                  color: "#2d2d2d",
+                  background: "#131629",
+                  color: "#e1e7fa",
                   borderRadius: "6px",
-                  border: "1px solid #dbeafe"
+                  border: "1px solid #393e60"
                 }}
                 name="name"
                 required
@@ -118,16 +119,16 @@ export default function Home() {
               />
             </div>
             <div style={{ marginBottom: "14px" }}>
-              <label style={{fontWeight:"500"}}>Email or WhatsApp number:</label><br />
+              <label style={{fontWeight:"500", color:"#c7dafb"}}>Email or WhatsApp number:</label><br />
               <input
                 style={{
                   width: "100%",
                   padding: "9px",
                   marginTop: "5px",
-                  background: "#f8fafc",
-                  color: "#2d2d2d",
+                  background: "#131629",
+                  color: "#e1e7fa",
                   borderRadius: "6px",
-                  border: "1px solid #dbeafe"
+                  border: "1px solid #393e60"
                 }}
                 name="contact"
                 required
@@ -137,7 +138,7 @@ export default function Home() {
               />
             </div>
             <div style={{ marginBottom: "16px" }}>
-              <label style={{fontWeight:"500"}}>
+              <label style={{fontWeight:"500", color:"#c7dafb"}}>
                 What’s your biggest FMGE pain point right now?
               </label><br />
               <input
@@ -145,10 +146,10 @@ export default function Home() {
                   width: "100%",
                   padding: "9px",
                   marginTop: "5px",
-                  background: "#f8fafc",
-                  color: "#2d2d2d",
+                  background: "#131629",
+                  color: "#e1e7fa",
                   borderRadius: "6px",
-                  border: "1px solid #dbeafe"
+                  border: "1px solid #393e60"
                 }}
                 name="pain"
                 required
@@ -161,7 +162,7 @@ export default function Home() {
             <button
               type="submit"
               style={{
-                background: "#194bb2",
+                background: "#3292fe",
                 color: "white",
                 padding: "13px 29px",
                 border: "none",
@@ -170,14 +171,15 @@ export default function Home() {
                 cursor: "pointer",
                 fontSize: "1.09rem",
                 marginTop: "2px",
-                boxShadow: "0 4px 14px 0 rgba(25, 75, 178, 0.08)"
+                boxShadow: "0 4px 14px 0 rgba(50,146,254,0.08)",
+                letterSpacing: "0.7px"
               }}
             >
               🚀 Get Early Access
             </button>
           </form>
         ) : (
-          <div style={{ color: "green", fontWeight: "bold", fontSize: "1.1rem", marginBottom: "20px", textAlign: "center" }}>
+          <div style={{ color: "#16c872", fontWeight: "bold", fontSize: "1.1rem", marginBottom: "20px", textAlign: "center" }}>
             🎉 Thank you for signing up! We'll be in touch soon.
           </div>
         )}
@@ -186,12 +188,13 @@ export default function Home() {
         maxWidth: "420px",
         fontStyle: "italic",
         fontSize: "1.09rem",
-        color: "#426193",
-        background: "#e8f0fe",
+        color: "#b8cdf1",
+        background: "#131629",
         borderRadius: "10px",
         padding: "18px 14px",
         marginBottom: "36px",
-        boxShadow: "0 2px 20px 0 rgba(25, 75, 178, 0.05)"
+        boxShadow: "0 2px 20px 0 rgba(50,146,254,0.03)",
+        border: "1px solid #23263b"
       }}>
         No more switching tabs or feeling lost.<br />
         Discover clarity, community, and a platform that finally understands FMGE.
