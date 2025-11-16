@@ -37,7 +37,6 @@ function todayISO() {
 
 export default function PlannerDashboard() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
-
   const [newSubject, setNewSubject] = useState("");
   const [newDeadline, setNewDeadline] = useState("");
   const [newNote, setNewNote] = useState("");
@@ -64,6 +63,7 @@ export default function PlannerDashboard() {
   const [reminderConfig, setReminderConfigState] = useState<ReminderConfig>(getReminderConfig());
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | null>(null);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
 
   // Analytics
   const totalSubjects = subjects.length;
@@ -71,7 +71,7 @@ export default function PlannerDashboard() {
   const totalMCQ = subjects.reduce((sum, s) => sum + s.mcqTotal, 0);
   const doneMCQ = subjects.reduce((sum, s) => sum + s.mcqDone, 0);
 
-  // Load from LocalStorage on mount
+  // Load from LocalStorage on mount - NO AUTO-SYNC
   useEffect(() => {
     const savedData = localStorage.getItem("plannerData");
     if (savedData) {
@@ -90,9 +90,17 @@ export default function PlannerDashboard() {
     if ("Notification" in window) {
       setNotificationPermission(Notification.permission as NotificationPermission);
     }
+
+    // PWA Install Prompt
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   }, []);
 
-  // Check if user is logged in (NO auto-load, NO auto-sync)
+  // Check if user is logged in
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -115,13 +123,14 @@ export default function PlannerDashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Save to LocalStorage ONLY (no cloud autosync)
+  // SAVE TO LOCAL STORAGE ONLY - ABSOLUTELY NO CLOUD SYNC
+  // This runs silently without any cloud operations
   useEffect(() => {
     const dataToSave = { subjects, goal, mcqGoal, streak, wellness };
     localStorage.setItem("plannerData", JSON.stringify(dataToSave));
   }, [subjects, goal, mcqGoal, streak, wellness]);
 
-  // Check and trigger reminders every minute
+  // Check reminders every minute
   useEffect(() => {
     const interval = setInterval(() => {
       checkAndTriggerReminders(subjects, streak, todayStudied, mcqGoal);
@@ -131,10 +140,9 @@ export default function PlannerDashboard() {
   }, [subjects, streak, todayStudied, mcqGoal]);
 
   // ============================================
-  // MANUAL SYNC ONLY
+  // MANUAL SYNC FUNCTIONS ONLY - User Triggered
   // ============================================
   
-  // LOAD from cloud (called only when user presses "Sync Load" button)
   async function handleSyncLoad() {
     if (!user) {
       alert("You must be logged in to sync!");
@@ -168,7 +176,7 @@ export default function PlannerDashboard() {
         setStreak(data.streak || 0);
         setWellness(data.wellness || [3, 3, 3, 3, 3, 3, 3]);
         setSyncStatus("Synced ✅");
-        alert("Cloud data loaded successfully!");
+        alert("✅ Cloud data loaded successfully!");
       }
     } catch (err) {
       console.error("Cloud load exception:", err);
@@ -181,14 +189,13 @@ export default function PlannerDashboard() {
     }
   }
 
-  // SAVE to cloud (called only when user presses "Sync Save" button)
   async function handleSyncSave() {
     if (!user) {
       alert("You must be logged in to sync!");
       return;
     }
 
-    setSyncStatus("Saving to cloud...");
+    setSyncStatus("Saving to cloud...";
     try {
       const { data, error } = await supabase
         .from("planner_data")
@@ -208,21 +215,32 @@ export default function PlannerDashboard() {
       if (error) {
         console.error("Cloud save error:", error);
         setSyncStatus("Save failed");
-        alert("Failed to save: " + (error.message || JSON.stringify(error)));
+        alert("❌ Failed to save: " + (error.message || JSON.stringify(error)));
       } else {
         console.log("Cloud save successful");
         setSyncStatus("Synced ✅");
-        alert("Cloud data saved successfully!");
+        alert("✅ Cloud data saved successfully!");
       }
     } catch (err) {
       console.error("Cloud save exception:", err);
       setSyncStatus("Save failed");
       if (err instanceof Error) {
-        alert("Failed to save to cloud: " + err.message);
+        alert("❌ Failed to save to cloud: " + err.message);
       } else {
-        alert("Failed to save to cloud: " + String(err));
+        alert("❌ Failed to save to cloud: " + String(err));
       }
     }
+  }
+
+  async function handleInstallApp() {
+    if (!installPrompt) {
+      alert("Install option not available. Try through browser menu (three dots → Install)");
+      return;
+    }
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    setInstallPrompt(null);
   }
 
   async function handleSignUp() {
@@ -245,7 +263,7 @@ export default function PlannerDashboard() {
       setUser(data.user);
       setEmail("");
       setPassword("");
-      alert("Logged in! Press 'Sync Load' to load your cloud data.");
+      alert("✅ Logged in! Press '⬇️ Sync Load' to load your cloud data.");
     }
   }
 
@@ -625,7 +643,7 @@ export default function PlannerDashboard() {
           {!isLoggedIn ? (
             <div>
               <h3 style={{ color: "#c4d7fd", marginBottom: "10px" }}>
-                ☁️ Cloud Sync (Manual)
+                ☁️ Cloud Sync (Manual Only)
               </h3>
               <div style={{ display: "flex", gap: "10px", marginBottom: "10px", flexWrap: "wrap" }}>
                 <input
@@ -755,21 +773,42 @@ export default function PlannerDashboard() {
                   ⬆️ Sync Save
                 </button>
               </div>
-              <button
-                onClick={handleLogout}
-                style={{
-                  width: "100%",
-                  padding: "7px 12px",
-                  background: "#fe3292",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                }}
-              >
-                Logout
-              </button>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {installPrompt && (
+                  <button
+                    onClick={handleInstallApp}
+                    style={{
+                      flex: 1,
+                      minWidth: "120px",
+                      padding: "7px 15px",
+                      background: "#29feef",
+                      color: "black",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                    }}
+                  >
+                    📱 Install App
+                  </button>
+                )}
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    flex: 1,
+                    minWidth: "80px",
+                    padding: "7px 12px",
+                    background: "#fe3292",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -2009,7 +2048,7 @@ export default function PlannerDashboard() {
           lineHeight: "1.62",
         }}
       >
-        (Data saved locally. Use Sync Load/Save buttons to manage cloud sync manually!)
+        (Data saved locally. Press ⬇️ Sync Load and ⬆️ Sync Save buttons to manually sync with cloud!)
       </div>
     </div>
   );
