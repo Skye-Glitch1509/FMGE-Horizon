@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, FormEvent, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
-import ProgressCharts from "../../components/ProgressCharts";
+import ProgressCharts from "../components/ProgressCharts";
 import {
   getReminderConfig,
   setReminderConfig,
@@ -191,12 +191,12 @@ export default function Home() {
         );
 
       if (error) {
-        console.error("Cloud save error:", error);
-        setSyncStatus("Not synced");
-      } else {
-        console.log("Cloud save successful:", data);
-        setSyncStatus("Synced");
-      }
+  console.error("Cloud save error:", error, "Full response:", {data, error});
+  alert("Could not save: " + (error?.message ?? JSON.stringify(error)));
+  setSyncStatus("Not synced");
+} else {
+  setSyncStatus("Synced");
+}
     } catch (err) {
       console.error("Cloud save exception:", err);
       setSyncStatus("Not synced");
@@ -1887,7 +1887,7 @@ export default function Home() {
           </>
         ) : (
           <>
-            <ProgressCharts subjects={subjects} streak={streak} wellness={wellness} />
+            <ProgressCharts subjects={subjects} streak={streak} wellness={wellness} mcqGoal={0} />
             <button
               onClick={() => setShowCharts(false)}
               style={{

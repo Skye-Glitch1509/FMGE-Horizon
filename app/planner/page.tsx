@@ -115,20 +115,19 @@ export default function PlannerDashboard() {
           data: { user },
           error,
         } = await supabase.auth.getUser();
-        if (error) {
-          console.error("Auth error:", error);
+        if (error || !user) {
+          console.log("No active session");
           return;
         }
-        if (user) {
-          setIsLoggedIn(true);
-          setUser(user);
-          loadFromCloud(user.id);
-        }
+        setIsLoggedIn(true);
+        setUser(user);
+        loadFromCloud(user.id);
       } catch (err) {
-        console.error("Error checking user:", err);
+        console.log("Session check error (non-critical):", err);
       }
     };
-    checkUser();
+    const timer = setTimeout(() => checkUser(), 500);
+    return () => clearTimeout(timer);
   }, []);
 
   // Save to LocalStorage whenever subjects change
@@ -150,15 +149,19 @@ export default function PlannerDashboard() {
     return () => clearInterval(interval);
   }, [subjects, streak, todayStudied, mcqGoal]);
 
-  // CLOUD FUNCTIONS
+  // ============================================
+  // FIXED SAVETOCLOUD FUNCTION - USE THIS EXACTLY
+  // ============================================
   async function saveToCloud(userId: string) {
+    console.log("Auth userId being saved:", userId, typeof userId);
+    
     setSyncStatus("Syncing");
     try {
       const { data, error } = await supabase
         .from("planner_data")
         .upsert(
           {
-            user_id: userId,
+            user_id: userId, // MUST be uuid from supabase.auth.getUser()
             subjects,
             goal,
             mcqGoal,
@@ -170,9 +173,11 @@ export default function PlannerDashboard() {
         );
 
       if (error) {
-        console.error("Cloud save error:", error);
+        console.error("Cloud save error:", error, "Full response:", { data, error });
+        alert("Could not save: " + (error?.message ?? JSON.stringify(error)));
         setSyncStatus("Not synced");
       } else {
+        console.log("Cloud save successful!");
         setSyncStatus("Synced");
       }
     } catch (err) {
@@ -708,7 +713,11 @@ export default function PlannerDashboard() {
                 }}
               >
                 <button
-                  onClick={() => saveToCloud(user.id)}
+                  onClick={() => {
+                    if (user) {
+                      saveToCloud(user.id);
+                    }
+                  }}
                   style={{
                     padding: "7px 19px",
                     background: "#217bf3",
