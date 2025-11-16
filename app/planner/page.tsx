@@ -189,13 +189,13 @@ export default function PlannerDashboard() {
     }
   }
 
-  async function handleSyncSave() {
+    async function handleSyncSave() {
     if (!user) {
       alert("You must be logged in to sync!");
       return;
     }
 
-    setSyncStatus("Saving to cloud...";
+    setSyncStatus("Saving to cloud...");
     try {
       const { data, error } = await supabase
         .from("planner_data")
