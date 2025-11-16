@@ -1,0 +1,41 @@
+{
+  "name": "FMGE Planner - Study Dashboard",
+  "short_name": "FMGE Planner",
+  "description": "Interactive FMGE exam study planner with MCQ tracking, progress analytics, and wellness monitoring.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#11131c",
+  "theme_color": "#2352a1",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "540x720",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "View Dashboard",
+      "short_name": "Dashboard",
+      "description": "Open FMGE Planner dashboard",
+      "url": "/",
+      "icons": [{ "src": "/icon-96.png", "sizes": "96x96" }]
+    }
+  ]
+}

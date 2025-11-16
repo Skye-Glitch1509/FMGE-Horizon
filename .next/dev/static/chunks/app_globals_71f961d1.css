@@ -1,0 +1,156 @@
+/* [project]/app/globals.css [app-client] (css) */
+@layer properties {
+  @supports (((-webkit-hyphens: none)) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color: rgb(from red r g b)))) {
+    *, :before, :after, ::backdrop {
+      --tw-border-style: solid;
+    }
+  }
+}
+
+.relative {
+  position: relative;
+}
+
+.static {
+  position: static;
+}
+
+.block {
+  display: block;
+}
+
+.flex {
+  display: flex;
+}
+
+.grid {
+  display: grid;
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.border {
+  border-style: var(--tw-border-style);
+  border-width: 1px;
+}
+
+.italic {
+  font-style: italic;
+}
+
+.transition {
+  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
+  transition-timing-function: var(--tw-ease, ease);
+  transition-duration: var(--tw-duration, 0s);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  color: #efeff5;
+  background: #11131c;
+  font-family: Inter, Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+
+  input, textarea, select, button {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 12px !important;
+    font-size: 16px !important;
+  }
+
+  .dashboard-container {
+    max-width: 100%;
+    margin: 10px !important;
+    padding: 16px !important;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .subject-card {
+    padding: 12px !important;
+    font-size: .95rem !important;
+  }
+
+  .button-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .button-group button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .hamburger-menu {
+    display: block;
+  }
+
+  .nav-hidden {
+    display: none;
+  }
+
+  .nav-hidden.show {
+    z-index: 100;
+    background: #151624;
+    flex-direction: column;
+    padding: 10px;
+    display: flex;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .dashboard-container {
+    max-width: 100%;
+    padding: 20px !important;
+  }
+
+  .hamburger-menu {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .form-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  .dashboard-container {
+    max-width: 740px;
+  }
+
+  .hamburger-menu {
+    display: none;
+  }
+}
+
+@property --tw-border-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+
+/*# sourceMappingURL=app_globals_71f961d1.css.map*/
