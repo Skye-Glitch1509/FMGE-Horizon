@@ -36,22 +36,7 @@ function todayISO() {
 }
 
 export default function PlannerDashboard() {
-  const [subjects, setSubjects] = useState<Subject[]>([
-    {
-      name: "Anatomy",
-      deadline: "2025-11-25",
-      completed: false,
-      note: "",
-      priority: false,
-      tag: "exam",
-      color: "#2352a1",
-      mcqTotal: 1000,
-      mcqDone: 150,
-      resource: "BRS Anatomy",
-      resourceRating: 4,
-      mcqSessions: [{ date: todayISO(), amount: 150 }],
-    },
-  ]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
 
   const [newSubject, setNewSubject] = useState("");
   const [newDeadline, setNewDeadline] = useState("");
@@ -79,11 +64,6 @@ export default function PlannerDashboard() {
   const [reminderConfig, setReminderConfigState] = useState<ReminderConfig>(getReminderConfig());
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | null>(null);
   const [pushEnabled, setPushEnabled] = useState(false);
-  
-  // ============================================
-  // NEW: CRITICAL FIX - Flag to prevent autosave until cloud data is loaded
-  // ============================================
-  const [loadedFromCloud, setLoadedFromCloud] = useState(false);
 
   // Analytics
   const totalSubjects = subjects.length;
@@ -112,7 +92,7 @@ export default function PlannerDashboard() {
     }
   }, []);
 
-  // Check if user is logged in
+  // Check if user is logged in (NO auto-load, NO auto-sync)
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -122,36 +102,24 @@ export default function PlannerDashboard() {
         } = await supabase.auth.getUser();
         if (error || !user) {
           console.log("No active session");
-          setLoadedFromCloud(true); // Allow local-only mode
           return;
         }
         setIsLoggedIn(true);
         setUser(user);
-        // Load from cloud BEFORE enabling autosave
-        loadFromCloud(user.id);
+        console.log("User logged in:", user.email);
       } catch (err) {
-        console.log("Session check error (non-critical):", err);
-        setLoadedFromCloud(true);
+        console.log("Session check error:", err);
       }
     };
     const timer = setTimeout(() => checkUser(), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  // ============================================
-  // CRITICAL: Only autosave AFTER cloud data is loaded
-  // ============================================
+  // Save to LocalStorage ONLY (no cloud autosync)
   useEffect(() => {
     const dataToSave = { subjects, goal, mcqGoal, streak, wellness };
     localStorage.setItem("plannerData", JSON.stringify(dataToSave));
-
-    // Only autosave to cloud if:
-    // 1. User is logged in
-    // 2. Cloud data has already been loaded (prevents overwrite on first login)
-    if (isLoggedIn && user && loadedFromCloud) {
-      saveToCloud(user.id);
-    }
-  }, [subjects, goal, mcqGoal, streak, wellness, isLoggedIn, user, loadedFromCloud]);
+  }, [subjects, goal, mcqGoal, streak, wellness]);
 
   // Check and trigger reminders every minute
   useEffect(() => {
@@ -163,18 +131,70 @@ export default function PlannerDashboard() {
   }, [subjects, streak, todayStudied, mcqGoal]);
 
   // ============================================
-  // FIXED SAVETOCLOUD FUNCTION
+  // MANUAL SYNC ONLY
   // ============================================
-  async function saveToCloud(userId: string) {
-    console.log("Auth userId being saved:", userId, typeof userId);
+  
+  // LOAD from cloud (called only when user presses "Sync Load" button)
+  async function handleSyncLoad() {
+    if (!user) {
+      alert("You must be logged in to sync!");
+      return;
+    }
     
-    setSyncStatus("Syncing");
+    setSyncStatus("Loading from cloud...");
+    try {
+      const { data, error } = await supabase
+        .from("planner_data")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (error) {
+        if (error.code === "PGRST116") {
+          alert("No existing cloud data. Starting fresh!");
+          setSyncStatus("No cloud data");
+        } else {
+          alert("Error loading: " + error.message);
+          setSyncStatus("Load failed");
+        }
+        return;
+      }
+
+      if (data) {
+        console.log("Cloud data loaded:", data);
+        setSubjects(data.subjects || []);
+        setGoal(data.goal || "Study at least 2 hours/day, complete 200 MCQs/week");
+        setMcqGoal(data.mcqGoal || 200);
+        setStreak(data.streak || 0);
+        setWellness(data.wellness || [3, 3, 3, 3, 3, 3, 3]);
+        setSyncStatus("Synced ✅");
+        alert("Cloud data loaded successfully!");
+      }
+    } catch (err) {
+      console.error("Cloud load exception:", err);
+      setSyncStatus("Load failed");
+      if (err instanceof Error) {
+        alert("Failed to load from cloud: " + err.message);
+      } else {
+        alert("Failed to load from cloud: " + String(err));
+      }
+    }
+  }
+
+  // SAVE to cloud (called only when user presses "Sync Save" button)
+  async function handleSyncSave() {
+    if (!user) {
+      alert("You must be logged in to sync!");
+      return;
+    }
+
+    setSyncStatus("Saving to cloud...");
     try {
       const { data, error } = await supabase
         .from("planner_data")
         .upsert(
           {
-            user_id: userId,
+            user_id: user.id,
             subjects,
             goal,
             mcqGoal,
@@ -186,57 +206,22 @@ export default function PlannerDashboard() {
         );
 
       if (error) {
-        console.error("Cloud save error:", error, "Full response:", { data, error });
-        setSyncStatus("Not synced");
+        console.error("Cloud save error:", error);
+        setSyncStatus("Save failed");
+        alert("Failed to save: " + (error.message || JSON.stringify(error)));
       } else {
-        console.log("Cloud save successful!");
-        setSyncStatus("Synced");
+        console.log("Cloud save successful");
+        setSyncStatus("Synced ✅");
+        alert("Cloud data saved successfully!");
       }
     } catch (err) {
       console.error("Cloud save exception:", err);
-      setSyncStatus("Not synced");
-    }
-  }
-
-  // ============================================
-  // CRITICAL: Load from cloud and set flag
-  // ============================================
-  async function loadFromCloud(userId: string) {
-    try {
-      const { data, error } = await supabase
-        .from("planner_data")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-
-      if (error) {
-        if (error.code === "PGRST116") {
-          console.log("No existing cloud data for this user - starting fresh");
-          setSyncStatus("Not synced");
-        } else {
-          console.error("Cloud load error:", error);
-          setSyncStatus("Not synced");
-        }
-        // Mark as loaded even if no data exists
-        setLoadedFromCloud(true);
-        return;
+      setSyncStatus("Save failed");
+      if (err instanceof Error) {
+        alert("Failed to save to cloud: " + err.message);
+      } else {
+        alert("Failed to save to cloud: " + String(err));
       }
-
-      if (data) {
-        console.log("Cloud data loaded successfully");
-        setSubjects(data.subjects || []);
-        setGoal(data.goal || "Study at least 2 hours/day, complete 200 MCQs/week");
-        setMcqGoal(data.mcqGoal || 200);
-        setStreak(data.streak || 0);
-        setWellness(data.wellness || [3, 3, 3, 3, 3, 3, 3]);
-        setSyncStatus("Synced");
-      }
-      // Mark as loaded after cloud state is set
-      setLoadedFromCloud(true);
-    } catch (err) {
-      console.error("Cloud load exception:", err);
-      setSyncStatus("Not synced");
-      setLoadedFromCloud(true);
     }
   }
 
@@ -260,7 +245,7 @@ export default function PlannerDashboard() {
       setUser(data.user);
       setEmail("");
       setPassword("");
-      loadFromCloud(data.user.id);
+      alert("Logged in! Press 'Sync Load' to load your cloud data.");
     }
   }
 
@@ -268,7 +253,7 @@ export default function PlannerDashboard() {
     await supabase.auth.signOut();
     setIsLoggedIn(false);
     setUser(null);
-    setLoadedFromCloud(false);
+    setSyncStatus("Not synced");
   }
 
   async function handleEnableNotifications() {
@@ -640,7 +625,7 @@ export default function PlannerDashboard() {
           {!isLoggedIn ? (
             <div>
               <h3 style={{ color: "#c4d7fd", marginBottom: "10px" }}>
-                ☁️ Cloud Sync (Optional)
+                ☁️ Cloud Sync (Manual)
               </h3>
               <div style={{ display: "flex", gap: "10px", marginBottom: "10px", flexWrap: "wrap" }}>
                 <input
@@ -709,7 +694,7 @@ export default function PlannerDashboard() {
                 </button>
               </div>
               <div style={{ fontSize: "0.9rem", color: "#abd6ff", marginTop: "8px" }}>
-                💡 Optional: Sign up to sync across devices!
+                💡 Sign up to sync across devices manually!
               </div>
             </div>
           ) : (
@@ -721,17 +706,59 @@ export default function PlannerDashboard() {
               <div
                 style={{
                   color:
-                    syncStatus === "Synced" ? "#43ea8f" : "#ffba1a",
+                    syncStatus === "Synced ✅" ? "#43ea8f" : "#ffba1a",
                   fontSize: "0.9rem",
                   marginTop: "4px",
+                  marginBottom: "10px",
                 }}
               >
                 Sync Status: {syncStatus}
               </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  marginBottom: "10px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <button
+                  onClick={handleSyncLoad}
+                  style={{
+                    flex: 1,
+                    minWidth: "120px",
+                    padding: "7px 15px",
+                    background: "#29feef",
+                    color: "black",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                >
+                  ⬇️ Sync Load
+                </button>
+                <button
+                  onClick={handleSyncSave}
+                  style={{
+                    flex: 1,
+                    minWidth: "120px",
+                    padding: "7px 15px",
+                    background: "#217bf3",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                >
+                  ⬆️ Sync Save
+                </button>
+              </div>
               <button
                 onClick={handleLogout}
                 style={{
-                  marginTop: "10px",
+                  width: "100%",
                   padding: "7px 12px",
                   background: "#fe3292",
                   color: "white",
@@ -1982,8 +2009,7 @@ export default function PlannerDashboard() {
           lineHeight: "1.62",
         }}
       >
-        (Data saved to device. Optional: Sign up for cloud sync and
-        cross-device access!)
+        (Data saved locally. Use Sync Load/Save buttons to manage cloud sync manually!)
       </div>
     </div>
   );
