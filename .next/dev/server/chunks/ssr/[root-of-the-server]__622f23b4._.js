@@ -1,0 +1,3762 @@
+module.exports = [
+"[externals]/next/dist/compiled/next-server/app-page-turbo.runtime.dev.js [external] (next/dist/compiled/next-server/app-page-turbo.runtime.dev.js, cjs)", ((__turbopack_context__, module, exports) => {
+
+const mod = __turbopack_context__.x("next/dist/compiled/next-server/app-page-turbo.runtime.dev.js", () => require("next/dist/compiled/next-server/app-page-turbo.runtime.dev.js"));
+
+module.exports = mod;
+}),
+"[project]/app/lib/supabaseClient.ts [app-ssr] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "supabase",
+    ()=>supabase
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$supabase$2f$supabase$2d$js$2f$dist$2f$module$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/@supabase/supabase-js/dist/module/index.js [app-ssr] (ecmascript) <locals>");
+;
+const supabaseUrl = ("TURBOPACK compile-time value", "https://vswpbyadamgrmapyaeag.supabase.co");
+const supabaseAnonKey = ("TURBOPACK compile-time value", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzd3BieWFkYW1ncm1hcHlhZWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyNDYyODYsImV4cCI6MjA3ODgyMjI4Nn0.HZ0gHtLZMQ7ZBJvlv0pNBH3KnhRVt4Ev5OU3-e6re68");
+if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+;
+const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$supabase$2f$supabase$2d$js$2f$dist$2f$module$2f$index$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__["createClient"])(supabaseUrl, supabaseAnonKey, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+    }
+});
+}),
+"[project]/app/lib/reminders.ts [app-ssr] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "checkAndTriggerReminders",
+    ()=>checkAndTriggerReminders,
+    "defaultReminderConfig",
+    ()=>defaultReminderConfig,
+    "getReminderConfig",
+    ()=>getReminderConfig,
+    "requestNotificationPermission",
+    ()=>requestNotificationPermission,
+    "sendNotification",
+    ()=>sendNotification,
+    "setReminderConfig",
+    ()=>setReminderConfig,
+    "subscribeToPushNotifications",
+    ()=>subscribeToPushNotifications,
+    "urlBase64ToUint8Array",
+    ()=>urlBase64ToUint8Array
+]);
+const defaultReminderConfig = {
+    enabled: false,
+    time: '08:00',
+    reminderDay: 'same-day',
+    reminderOnMCQMiss: true
+};
+function getReminderConfig() {
+    if ("TURBOPACK compile-time truthy", 1) return defaultReminderConfig;
+    //TURBOPACK unreachable
+    ;
+    const saved = undefined;
+}
+function setReminderConfig(config) {
+    localStorage.setItem('reminderConfig', JSON.stringify(config));
+}
+function checkAndTriggerReminders(subjects, streak, todayStudied, mcqGoal) {
+    const today = new Date();
+    const config = getReminderConfig();
+    if (!config.enabled) return;
+    // Check if it's time to remind
+    const currentHour = today.getHours();
+    const currentMinute = today.getMinutes();
+    const [reminderHour, reminderMinute] = config.time.split(':').map(Number);
+    // Trigger reminder if within 1 minute window
+    if (currentHour === reminderHour && currentMinute === reminderMinute) {
+        const upcomingSubjects = subjects.filter((s)=>{
+            const deadline = new Date(s.deadline);
+            const daysUntil = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            return daysUntil >= 0;
+        });
+        const totalMCQDone = subjects.reduce((sum, s)=>sum + s.mcqDone, 0);
+        const totalMCQTarget = mcqGoal;
+        let notificationTitle = '';
+        let notificationBody = '';
+        // Daily goals reminder
+        if (config.reminderDay === 'same-day' || config.reminderDay === 'day-before') {
+            notificationTitle = '📚 Daily Study Reminder';
+            notificationBody = `You have ${upcomingSubjects.length} subjects to review today. Keep that streak going! 🔥`;
+        }
+        // MCQ goal not met
+        if (config.reminderOnMCQMiss && totalMCQDone < totalMCQTarget && !todayStudied) {
+            notificationTitle = '📝 MCQ Goal Reminder';
+            notificationBody = `You haven't reached today's MCQ goal yet. Target: ${totalMCQTarget}, Done: ${totalMCQDone}. Let's catch up! 💪`;
+        }
+        if (notificationTitle) {
+            sendNotification(notificationTitle, notificationBody);
+        }
+    }
+}
+async function sendNotification(title, body) {
+    // Browser Notification API
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+            body,
+            icon: '/icon-192.png',
+            badge: '/badge-72.png',
+            tag: 'fmge-reminder',
+            requireInteraction: true
+        });
+    }
+    // Service Worker Push Notification (if registered)
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+                // In production, send to server to trigger push
+                console.log('Push notification ready (implement server-side triggering)');
+            }
+        } catch (err) {
+            console.log('Push notification error:', err);
+        }
+    }
+}
+async function requestNotificationPermission() {
+    if (!('Notification' in window)) {
+        alert('This browser does not support notifications');
+        return false;
+    }
+    if (Notification.permission === 'granted') {
+        return true;
+    }
+    if (Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission();
+        return permission === 'granted';
+    }
+    return false;
+}
+async function subscribeToPushNotifications() {
+    try {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            alert('Your browser does not support push notifications');
+            return false;
+        }
+        const registration = await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+            const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+            if (!vapidPublicKey) {
+                console.log('Push notifications not configured - skipping setup');
+                return false;
+            }
+            const vapidArray = urlBase64ToUint8Array(vapidPublicKey);
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: vapidArray
+            });
+            console.log('Push subscription created:', subscription);
+        }
+        return true;
+    } catch (err) {
+        console.error('Push subscription error:', err);
+        return false;
+    }
+}
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    if ("TURBOPACK compile-time truthy", 1) {
+        return new Uint8Array(0);
+    }
+    //TURBOPACK unreachable
+    ;
+    const rawData = undefined;
+    const outputArray = undefined;
+    let i;
+}
+}),
+"[project]/app/components/ProgressCharts.tsx [app-ssr] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>ProgressCharts
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$chart$2f$BarChart$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/chart/BarChart.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Bar$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/cartesian/Bar.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$chart$2f$LineChart$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/chart/LineChart.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Line$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/cartesian/Line.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$chart$2f$PieChart$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/chart/PieChart.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$polar$2f$Pie$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/polar/Pie.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Cell$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/component/Cell.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$XAxis$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/cartesian/XAxis.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$YAxis$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/cartesian/YAxis.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$CartesianGrid$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/cartesian/CartesianGrid.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Tooltip$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/component/Tooltip.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Legend$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/component/Legend.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$ResponsiveContainer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/recharts/es6/component/ResponsiveContainer.js [app-ssr] (ecmascript)");
+"use client";
+;
+;
+function ProgressCharts({ subjects, wellness, streak, mcqGoal }) {
+    // Chart 1: MCQ Progress by Subject
+    const mcqData = subjects.map((s)=>({
+            name: s.name,
+            done: s.mcqDone,
+            total: s.mcqTotal
+        }));
+    // Chart 2: Streak Trend (last 7 days)
+    const streakData = [
+        {
+            day: "Day 1",
+            streak: Math.max(0, streak - 6)
+        },
+        {
+            day: "Day 2",
+            streak: Math.max(0, streak - 5)
+        },
+        {
+            day: "Day 3",
+            streak: Math.max(0, streak - 4)
+        },
+        {
+            day: "Day 4",
+            streak: Math.max(0, streak - 3)
+        },
+        {
+            day: "Day 5",
+            streak: Math.max(0, streak - 2)
+        },
+        {
+            day: "Day 6",
+            streak: Math.max(0, streak - 1)
+        },
+        {
+            day: "Today",
+            streak
+        }
+    ];
+    // Chart 3: Subject Completion
+    const completionData = [
+        {
+            name: "Completed",
+            value: subjects.filter((s)=>s.completed).length
+        },
+        {
+            name: "In Progress",
+            value: subjects.filter((s)=>!s.completed).length
+        }
+    ];
+    // Chart 4: Weekly Wellness Trend
+    const wellnessData = wellness.map((w, i)=>({
+            day: `Day ${i + 1}`,
+            wellness: w
+        }));
+    const COLORS = [
+        "#43ea8f",
+        "#2352a1",
+        "#ffba1a",
+        "#fe3292",
+        "#29feef"
+    ];
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        style: {
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(500px, 1fr))",
+            gap: "30px",
+            marginBottom: "40px"
+        },
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                style: {
+                    background: "#151624",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    boxShadow: "0 4px 12px rgba(34, 70, 190, 0.1)"
+                },
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                        style: {
+                            color: "#c4d7fd",
+                            marginBottom: "15px"
+                        },
+                        children: "📝 MCQ Progress by Subject"
+                    }, void 0, false, {
+                        fileName: "[project]/app/components/ProgressCharts.tsx",
+                        lineNumber: 103,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$ResponsiveContainer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ResponsiveContainer"], {
+                        width: "100%",
+                        height: 300,
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$chart$2f$BarChart$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["BarChart"], {
+                            data: mcqData,
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$CartesianGrid$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CartesianGrid"], {
+                                    strokeDasharray: "3 3",
+                                    stroke: "#232942"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 108,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$XAxis$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["XAxis"], {
+                                    dataKey: "name",
+                                    stroke: "#b8cdf1"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 109,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$YAxis$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["YAxis"], {
+                                    stroke: "#b8cdf1"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 110,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Tooltip$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Tooltip"], {
+                                    contentStyle: {
+                                        background: "#18192b",
+                                        border: "1px solid #232942",
+                                        color: "#efeff5"
+                                    }
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 111,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Legend$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Legend"], {}, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 118,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Bar$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Bar"], {
+                                    dataKey: "done",
+                                    fill: "#43ea8f",
+                                    name: "Done"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 119,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Bar$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Bar"], {
+                                    dataKey: "total",
+                                    fill: "#2352a1",
+                                    name: "Total"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 120,
+                                    columnNumber: 13
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/app/components/ProgressCharts.tsx",
+                            lineNumber: 107,
+                            columnNumber: 11
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/app/components/ProgressCharts.tsx",
+                        lineNumber: 106,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        style: {
+                            marginTop: "12px",
+                            color: "#ffba1a",
+                            fontWeight: "bold"
+                        },
+                        children: [
+                            "📊 Your Weekly Goal: ",
+                            mcqGoal,
+                            " MCQs"
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/components/ProgressCharts.tsx",
+                        lineNumber: 123,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/app/components/ProgressCharts.tsx",
+                lineNumber: 95,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                style: {
+                    background: "#151624",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    boxShadow: "0 4px 12px rgba(34, 70, 190, 0.1)"
+                },
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                        style: {
+                            color: "#c4d7fd",
+                            marginBottom: "15px"
+                        },
+                        children: "🔥 Study Streak Trend"
+                    }, void 0, false, {
+                        fileName: "[project]/app/components/ProgressCharts.tsx",
+                        lineNumber: 137,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$ResponsiveContainer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ResponsiveContainer"], {
+                        width: "100%",
+                        height: 300,
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$chart$2f$LineChart$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["LineChart"], {
+                            data: streakData,
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$CartesianGrid$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CartesianGrid"], {
+                                    strokeDasharray: "3 3",
+                                    stroke: "#232942"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 142,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$XAxis$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["XAxis"], {
+                                    dataKey: "day",
+                                    stroke: "#b8cdf1"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 143,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$YAxis$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["YAxis"], {
+                                    stroke: "#b8cdf1"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 144,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Tooltip$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Tooltip"], {
+                                    contentStyle: {
+                                        background: "#18192b",
+                                        border: "1px solid #232942",
+                                        color: "#efeff5"
+                                    }
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 145,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Legend$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Legend"], {}, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 152,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Line$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Line"], {
+                                    type: "monotone",
+                                    dataKey: "streak",
+                                    stroke: "#ffba1a",
+                                    strokeWidth: 2,
+                                    name: "Days"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 153,
+                                    columnNumber: 13
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/app/components/ProgressCharts.tsx",
+                            lineNumber: 141,
+                            columnNumber: 11
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/app/components/ProgressCharts.tsx",
+                        lineNumber: 140,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/app/components/ProgressCharts.tsx",
+                lineNumber: 129,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                style: {
+                    background: "#151624",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    boxShadow: "0 4px 12px rgba(34, 70, 190, 0.1)"
+                },
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                        style: {
+                            color: "#c4d7fd",
+                            marginBottom: "15px"
+                        },
+                        children: "✅ Subject Completion Status"
+                    }, void 0, false, {
+                        fileName: "[project]/app/components/ProgressCharts.tsx",
+                        lineNumber: 173,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$ResponsiveContainer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ResponsiveContainer"], {
+                        width: "100%",
+                        height: 300,
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$chart$2f$PieChart$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["PieChart"], {
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$polar$2f$Pie$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Pie"], {
+                                    data: completionData,
+                                    cx: "50%",
+                                    cy: "50%",
+                                    labelLine: false,
+                                    label: ({ name, value })=>`${name}: ${value}`,
+                                    outerRadius: 80,
+                                    fill: "#8884d8",
+                                    dataKey: "value",
+                                    children: completionData.map((entry, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Cell$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Cell"], {
+                                            fill: COLORS[index % COLORS.length]
+                                        }, `cell-${index}`, false, {
+                                            fileName: "[project]/app/components/ProgressCharts.tsx",
+                                            lineNumber: 189,
+                                            columnNumber: 17
+                                        }, this))
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 178,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Tooltip$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Tooltip"], {
+                                    contentStyle: {
+                                        background: "#18192b",
+                                        border: "1px solid #232942",
+                                        color: "#efeff5"
+                                    }
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 195,
+                                    columnNumber: 13
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/app/components/ProgressCharts.tsx",
+                            lineNumber: 177,
+                            columnNumber: 11
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/app/components/ProgressCharts.tsx",
+                        lineNumber: 176,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/app/components/ProgressCharts.tsx",
+                lineNumber: 165,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                style: {
+                    background: "#151624",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    boxShadow: "0 4px 12px rgba(34, 70, 190, 0.1)"
+                },
+                children: [
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                        style: {
+                            color: "#c4d7fd",
+                            marginBottom: "15px"
+                        },
+                        children: "🧠 Weekly Wellness Trend"
+                    }, void 0, false, {
+                        fileName: "[project]/app/components/ProgressCharts.tsx",
+                        lineNumber: 215,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$ResponsiveContainer$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ResponsiveContainer"], {
+                        width: "100%",
+                        height: 300,
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$chart$2f$BarChart$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["BarChart"], {
+                            data: wellnessData,
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$CartesianGrid$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CartesianGrid"], {
+                                    strokeDasharray: "3 3",
+                                    stroke: "#232942"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 220,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$XAxis$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["XAxis"], {
+                                    dataKey: "day",
+                                    stroke: "#b8cdf1"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 221,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$YAxis$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["YAxis"], {
+                                    stroke: "#b8cdf1",
+                                    domain: [
+                                        0,
+                                        5
+                                    ]
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 222,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Tooltip$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Tooltip"], {
+                                    contentStyle: {
+                                        background: "#18192b",
+                                        border: "1px solid #232942",
+                                        color: "#efeff5"
+                                    }
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 223,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$component$2f$Legend$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Legend"], {}, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 230,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$recharts$2f$es6$2f$cartesian$2f$Bar$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Bar"], {
+                                    dataKey: "wellness",
+                                    fill: "#29feef",
+                                    name: "Wellness Score"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/components/ProgressCharts.tsx",
+                                    lineNumber: 231,
+                                    columnNumber: 13
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/app/components/ProgressCharts.tsx",
+                            lineNumber: 219,
+                            columnNumber: 11
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/app/components/ProgressCharts.tsx",
+                        lineNumber: 218,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/app/components/ProgressCharts.tsx",
+                lineNumber: 207,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/app/components/ProgressCharts.tsx",
+        lineNumber: 86,
+        columnNumber: 5
+    }, this);
+}
+}),
+"[project]/app/planner/page.tsx [app-ssr] (ecmascript)", ((__turbopack_context__) => {
+"use strict";
+
+__turbopack_context__.s([
+    "default",
+    ()=>PlannerDashboard
+]);
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$supabaseClient$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/app/lib/supabaseClient.ts [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$reminders$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/app/lib/reminders.ts [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ProgressCharts$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/app/components/ProgressCharts.tsx [app-ssr] (ecmascript)");
+"use client";
+;
+;
+;
+;
+;
+function todayISO() {
+    return new Date().toISOString().slice(0, 10);
+}
+function PlannerDashboard() {
+    const [subjects, setSubjects] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [newSubject, setNewSubject] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    const [newDeadline, setNewDeadline] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    const [newNote, setNewNote] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    const [newPriority, setNewPriority] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [newTag, setNewTag] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("exam");
+    const [newColor, setNewColor] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("#2352a1");
+    const [newMcqTotal, setNewMcqTotal] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
+    const [newMcqDone, setNewMcqDone] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
+    const [newResource, setNewResource] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    const [newResourceRating, setNewResourceRating] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
+    const [goal, setGoal] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("Study at least 2 hours/day, complete 200 MCQs/week");
+    const [mcqGoal, setMcqGoal] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(200);
+    const [streak, setStreak] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(0);
+    const [todayStudied, setTodayStudied] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [wellness, setWellness] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])([
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+    ]);
+    const [editIndex, setEditIndex] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [editFields, setEditFields] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])({});
+    const [isLoggedIn, setIsLoggedIn] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [user, setUser] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [syncStatus, setSyncStatus] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("Not synced");
+    const [email, setEmail] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    const [password, setPassword] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
+    const [showCharts, setShowCharts] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [reminderConfig, setReminderConfigState] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$reminders$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getReminderConfig"])());
+    const [notificationPermission, setNotificationPermission] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [pushEnabled, setPushEnabled] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
+    const [installPrompt, setInstallPrompt] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    // Analytics
+    const totalSubjects = subjects.length;
+    const completedSubjects = subjects.filter((s)=>s.completed).length;
+    const totalMCQ = subjects.reduce((sum, s)=>sum + s.mcqTotal, 0);
+    const doneMCQ = subjects.reduce((sum, s)=>sum + s.mcqDone, 0);
+    // Load from LocalStorage on mount - NO AUTO-SYNC
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        const savedData = localStorage.getItem("plannerData");
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                setSubjects(parsed.subjects || []);
+                setGoal(parsed.goal || "Study at least 2 hours/day, complete 200 MCQs/week");
+                setMcqGoal(parsed.mcqGoal || 200);
+                setStreak(parsed.streak || 0);
+                setWellness(parsed.wellness || [
+                    3,
+                    3,
+                    3,
+                    3,
+                    3,
+                    3,
+                    3
+                ]);
+            } catch (err) {
+                console.log("Could not load from localStorage");
+            }
+        }
+        if ("Notification" in window) {
+            setNotificationPermission(Notification.permission);
+        }
+        // PWA Install Prompt
+        const handleBeforeInstallPrompt = (e)=>{
+            e.preventDefault();
+            setInstallPrompt(e);
+        };
+        window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+        return ()=>window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    }, []);
+    // Check if user is logged in
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        const checkUser = async ()=>{
+            try {
+                const { data: { user }, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$supabaseClient$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+                if (error || !user) {
+                    console.log("No active session");
+                    return;
+                }
+                setIsLoggedIn(true);
+                setUser(user);
+                console.log("User logged in:", user.email);
+            } catch (err) {
+                console.log("Session check error:", err);
+            }
+        };
+        const timer = setTimeout(()=>checkUser(), 500);
+        return ()=>clearTimeout(timer);
+    }, []);
+    // SAVE TO LOCAL STORAGE ONLY - ABSOLUTELY NO CLOUD SYNC
+    // This runs silently without any cloud operations
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        const dataToSave = {
+            subjects,
+            goal,
+            mcqGoal,
+            streak,
+            wellness
+        };
+        localStorage.setItem("plannerData", JSON.stringify(dataToSave));
+    }, [
+        subjects,
+        goal,
+        mcqGoal,
+        streak,
+        wellness
+    ]);
+    // Check reminders every minute
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
+        const interval = setInterval(()=>{
+            (0, __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$reminders$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["checkAndTriggerReminders"])(subjects, streak, todayStudied, mcqGoal);
+        }, 60000);
+        return ()=>clearInterval(interval);
+    }, [
+        subjects,
+        streak,
+        todayStudied,
+        mcqGoal
+    ]);
+    // ============================================
+    // MANUAL SYNC FUNCTIONS ONLY - User Triggered
+    // ============================================
+    async function handleSyncLoad() {
+        if (!user) {
+            alert("You must be logged in to sync!");
+            return;
+        }
+        setSyncStatus("Loading from cloud...");
+        try {
+            const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$supabaseClient$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("planner_data").select("*").eq("user_id", user.id).single();
+            if (error) {
+                if (error.code === "PGRST116") {
+                    alert("No existing cloud data. Starting fresh!");
+                    setSyncStatus("No cloud data");
+                } else {
+                    alert("Error loading: " + error.message);
+                    setSyncStatus("Load failed");
+                }
+                return;
+            }
+            if (data) {
+                console.log("Cloud data loaded:", data);
+                setSubjects(data.subjects || []);
+                setGoal(data.goal || "Study at least 2 hours/day, complete 200 MCQs/week");
+                setMcqGoal(data.mcqGoal || 200);
+                setStreak(data.streak || 0);
+                setWellness(data.wellness || [
+                    3,
+                    3,
+                    3,
+                    3,
+                    3,
+                    3,
+                    3
+                ]);
+                setSyncStatus("Synced ✅");
+                alert("✅ Cloud data loaded successfully!");
+            }
+        } catch (err) {
+            console.error("Cloud load exception:", err);
+            setSyncStatus("Load failed");
+            if (err instanceof Error) {
+                alert("Failed to load from cloud: " + err.message);
+            } else {
+                alert("Failed to load from cloud: " + String(err));
+            }
+        }
+    }
+    async function handleSyncSave() {
+        if (!user) {
+            alert("You must be logged in to sync!");
+            return;
+        }
+        setSyncStatus("Saving to cloud...");
+        try {
+            const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$supabaseClient$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].from("planner_data").upsert({
+                user_id: user.id,
+                subjects,
+                goal,
+                mcqGoal,
+                streak,
+                wellness,
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: "user_id"
+            });
+            if (error) {
+                console.error("Cloud save error:", error);
+                setSyncStatus("Save failed");
+                alert("❌ Failed to save: " + (error.message || JSON.stringify(error)));
+            } else {
+                console.log("Cloud save successful");
+                setSyncStatus("Synced ✅");
+                alert("✅ Cloud data saved successfully!");
+            }
+        } catch (err) {
+            console.error("Cloud save exception:", err);
+            setSyncStatus("Save failed");
+            if (err instanceof Error) {
+                alert("❌ Failed to save to cloud: " + err.message);
+            } else {
+                alert("❌ Failed to save to cloud: " + String(err));
+            }
+        }
+    }
+    async function handleInstallApp() {
+        if (!installPrompt) {
+            alert("Install option not available. Try through browser menu (three dots → Install)");
+            return;
+        }
+        installPrompt.prompt();
+        const { outcome } = await installPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        setInstallPrompt(null);
+    }
+    async function handleSignUp() {
+        const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$supabaseClient$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].auth.signUp({
+            email,
+            password
+        });
+        if (error) {
+            alert("Sign up error: " + error.message);
+        } else {
+            alert("Sign up successful! Please check your email to confirm.");
+            setEmail("");
+            setPassword("");
+        }
+    }
+    async function handleLogin() {
+        const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$supabaseClient$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].auth.signInWithPassword({
+            email,
+            password
+        });
+        if (error) {
+            alert("Login error: " + error.message);
+        } else {
+            setIsLoggedIn(true);
+            setUser(data.user);
+            setEmail("");
+            setPassword("");
+            alert("✅ Logged in! Press '⬇️ Sync Load' to load your cloud data.");
+        }
+    }
+    async function handleLogout() {
+        await __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$supabaseClient$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["supabase"].auth.signOut();
+        setIsLoggedIn(false);
+        setUser(null);
+        setSyncStatus("Not synced");
+    }
+    async function handleEnableNotifications() {
+        const granted = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$reminders$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["requestNotificationPermission"])();
+        if (granted) {
+            setNotificationPermission("granted");
+            alert("✅ Notifications enabled!");
+        } else {
+            alert("❌ Notifications denied");
+        }
+    }
+    async function handleEnablePushNotifications() {
+        const subscribed = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$reminders$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["subscribeToPushNotifications"])();
+        if (subscribed) {
+            setPushEnabled(true);
+            alert("✅ Push notifications enabled!");
+        } else {
+            alert("❌ Push notifications setup failed");
+        }
+    }
+    function handleReminderConfigChange(key, value) {
+        const newConfig = {
+            ...reminderConfig,
+            [key]: value
+        };
+        setReminderConfigState(newConfig);
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$app$2f$lib$2f$reminders$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["setReminderConfig"])(newConfig);
+    }
+    // PLANNER FUNCTIONS
+    function handleAddSubject(e) {
+        e.preventDefault();
+        if (!newSubject.trim() || !newDeadline.trim()) return;
+        setSubjects([
+            ...subjects,
+            {
+                name: newSubject,
+                deadline: newDeadline,
+                completed: false,
+                note: newNote,
+                priority: newPriority,
+                tag: newTag,
+                color: newColor,
+                mcqTotal: newMcqTotal,
+                mcqDone: newMcqDone,
+                resource: newResource,
+                resourceRating: newResourceRating,
+                mcqSessions: newMcqDone > 0 ? [
+                    {
+                        date: todayISO(),
+                        amount: newMcqDone
+                    }
+                ] : []
+            }
+        ]);
+        setNewSubject("");
+        setNewDeadline("");
+        setNewNote("");
+        setNewPriority(false);
+        setNewTag("exam");
+        setNewColor("#2352a1");
+        setNewMcqTotal(0);
+        setNewMcqDone(0);
+        setNewResource("");
+        setNewResourceRating(0);
+    }
+    function handleRemove(i) {
+        setSubjects(subjects.filter((_, idx)=>idx !== i));
+    }
+    function handleToggleComplete(i) {
+        setSubjects(subjects.map((subj, idx)=>idx === i ? {
+                ...subj,
+                completed: !subj.completed
+            } : subj));
+    }
+    function handleAddMCQ(i, val) {
+        setSubjects(subjects.map((subj, idx)=>idx === i ? {
+                ...subj,
+                mcqDone: Math.min(subj.mcqTotal, subj.mcqDone + val),
+                mcqSessions: [
+                    ...subj.mcqSessions,
+                    {
+                        date: todayISO(),
+                        amount: val
+                    }
+                ]
+            } : subj));
+    }
+    function handleMCQDoneInput(i, value) {
+        setSubjects(subjects.map((subj, idx)=>idx === i ? {
+                ...subj,
+                mcqDone: value,
+                mcqSessions: value !== subj.mcqDone ? [
+                    ...subj.mcqSessions,
+                    {
+                        date: todayISO(),
+                        amount: value - subj.mcqDone
+                    }
+                ] : subj.mcqSessions
+            } : subj));
+    }
+    function handleEditStart(i) {
+        setEditIndex(i);
+        setEditFields({
+            ...subjects[i]
+        });
+    }
+    function handleEditChange(field, value) {
+        setEditFields({
+            ...editFields,
+            [field]: value
+        });
+    }
+    function handleEditSave(i) {
+        setSubjects(subjects.map((subj, idx)=>idx === i ? {
+                ...subj,
+                ...editFields
+            } : subj));
+        setEditIndex(null);
+    }
+    function handleLogStreak() {
+        if (!todayStudied) {
+            setStreak((s)=>s + 1);
+            setTodayStudied(true);
+        }
+    }
+    function handleWellnessChange(val) {
+        setWellness((arr)=>[
+                ...arr.slice(1),
+                val
+            ]);
+    }
+    const today = new Date();
+    function deadlineStatus(deadline) {
+        const date = new Date(deadline);
+        const diff = Math.floor((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (diff < 0) return "Past due";
+        if (diff === 0) return "Due today";
+        if (diff <= 7) return "Due soon";
+        return "";
+    }
+    if (showCharts) {
+        return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+            style: {
+                minHeight: "100vh",
+                background: "#11131c",
+                padding: "40px 20px",
+                fontFamily: "Inter, Arial, sans-serif"
+            },
+            children: [
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                    onClick: ()=>setShowCharts(false),
+                    style: {
+                        background: "#2352a1",
+                        color: "white",
+                        border: "none",
+                        padding: "10px 20px",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        marginBottom: "20px",
+                        fontWeight: "bold"
+                    },
+                    children: "← Back to Dashboard"
+                }, void 0, false, {
+                    fileName: "[project]/app/planner/page.tsx",
+                    lineNumber: 434,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$app$2f$components$2f$ProgressCharts$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
+                    subjects: subjects,
+                    wellness: wellness,
+                    streak: streak,
+                    mcqGoal: mcqGoal
+                }, void 0, false, {
+                    fileName: "[project]/app/planner/page.tsx",
+                    lineNumber: 449,
+                    columnNumber: 9
+                }, this)
+            ]
+        }, void 0, true, {
+            fileName: "[project]/app/planner/page.tsx",
+            lineNumber: 426,
+            columnNumber: 7
+        }, this);
+    }
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+        style: {
+            fontFamily: "Inter, Arial, sans-serif",
+            minHeight: "100vh",
+            background: "#11131c",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            paddingBottom: "40px"
+        },
+        children: [
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                style: {
+                    width: "100%",
+                    maxWidth: "740px",
+                    marginTop: "40px",
+                    marginBottom: "20px",
+                    padding: "32px 32px",
+                    background: "#151624",
+                    borderRadius: "22px",
+                    boxShadow: "0 14px 39px 0 rgba(34, 70, 190, 0.13)"
+                },
+                children: [
+                    notificationPermission !== "granted" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        style: {
+                            marginBottom: "20px",
+                            padding: "15px",
+                            background: "#18192b",
+                            borderRadius: "12px"
+                        },
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                style: {
+                                    color: "#c4d7fd",
+                                    fontWeight: "bold",
+                                    marginBottom: "10px"
+                                },
+                                children: "🔔 Enable Notifications"
+                            }, void 0, false, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 488,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                onClick: handleEnableNotifications,
+                                style: {
+                                    background: "#2352a1",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "8px 15px",
+                                    borderRadius: "6px",
+                                    fontWeight: "bold",
+                                    cursor: "pointer"
+                                },
+                                children: "Enable Reminders"
+                            }, void 0, false, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 497,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 480,
+                        columnNumber: 11
+                    }, this),
+                    notificationPermission === "granted" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        style: {
+                            marginBottom: "20px",
+                            padding: "15px",
+                            background: "#18192b",
+                            borderRadius: "12px"
+                        },
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                style: {
+                                    color: "#c4d7fd",
+                                    fontWeight: "bold",
+                                    marginBottom: "10px"
+                                },
+                                children: "⏰ Reminder Settings"
+                            }, void 0, false, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 524,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                style: {
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "10px"
+                                },
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#b8cdf1",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "8px"
+                                        },
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                type: "checkbox",
+                                                checked: reminderConfig.enabled,
+                                                onChange: (e)=>handleReminderConfigChange("enabled", e.target.checked),
+                                                style: {
+                                                    accentColor: "#2352a1",
+                                                    width: "18px",
+                                                    height: "18px"
+                                                }
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 542,
+                                                columnNumber: 17
+                                            }, this),
+                                            "Enable Daily Reminders"
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 534,
+                                        columnNumber: 15
+                                    }, this),
+                                    reminderConfig.enabled && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                        style: {
+                                                            color: "#b8cdf1",
+                                                            fontSize: "0.9rem",
+                                                            display: "block",
+                                                            marginBottom: "4px"
+                                                        },
+                                                        children: "Reminder Time:"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/planner/page.tsx",
+                                                        lineNumber: 560,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                        type: "time",
+                                                        value: reminderConfig.time,
+                                                        onChange: (e)=>handleReminderConfigChange("time", e.target.value),
+                                                        style: {
+                                                            background: "#151624",
+                                                            color: "#efeff5",
+                                                            padding: "8px",
+                                                            borderRadius: "6px",
+                                                            border: "1px solid #232942"
+                                                        }
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/planner/page.tsx",
+                                                        lineNumber: 570,
+                                                        columnNumber: 21
+                                                    }, this)
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 559,
+                                                columnNumber: 19
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                style: {
+                                                    color: "#b8cdf1",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    gap: "8px"
+                                                },
+                                                children: [
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                        type: "checkbox",
+                                                        checked: reminderConfig.reminderOnMCQMiss,
+                                                        onChange: (e)=>handleReminderConfigChange("reminderOnMCQMiss", e.target.checked),
+                                                        style: {
+                                                            accentColor: "#2352a1",
+                                                            width: "18px",
+                                                            height: "18px"
+                                                        }
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/planner/page.tsx",
+                                                        lineNumber: 594,
+                                                        columnNumber: 21
+                                                    }, this),
+                                                    "Remind if MCQ Goal Not Met"
+                                                ]
+                                            }, void 0, true, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 586,
+                                                columnNumber: 19
+                                            }, this)
+                                        ]
+                                    }, void 0, true),
+                                    notificationPermission === "granted" && !pushEnabled && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        onClick: handleEnablePushNotifications,
+                                        style: {
+                                            background: "#29feef",
+                                            color: "black",
+                                            border: "none",
+                                            padding: "8px 15px",
+                                            borderRadius: "6px",
+                                            fontWeight: "bold",
+                                            cursor: "pointer"
+                                        },
+                                        children: "Enable Push Notifications"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 615,
+                                        columnNumber: 17
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 533,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 516,
+                        columnNumber: 11
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        style: {
+                            marginBottom: "20px",
+                            padding: "15px",
+                            background: "#18192b",
+                            borderRadius: "12px"
+                        },
+                        children: !isLoggedIn ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
+                                    style: {
+                                        color: "#c4d7fd",
+                                        marginBottom: "10px"
+                                    },
+                                    children: "☁️ Cloud Sync (Manual Only)"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/planner/page.tsx",
+                                    lineNumber: 645,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    style: {
+                                        display: "flex",
+                                        gap: "10px",
+                                        marginBottom: "10px",
+                                        flexWrap: "wrap"
+                                    },
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                            type: "email",
+                                            placeholder: "Email",
+                                            value: email,
+                                            onChange: (e)=>setEmail(e.target.value),
+                                            style: {
+                                                flex: 1,
+                                                minWidth: "120px",
+                                                padding: "8px",
+                                                borderRadius: "6px",
+                                                border: "1px solid #232942",
+                                                background: "#151624",
+                                                color: "#efeff5"
+                                            }
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 649,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                            type: "password",
+                                            placeholder: "Password",
+                                            value: password,
+                                            onChange: (e)=>setPassword(e.target.value),
+                                            style: {
+                                                flex: 1,
+                                                minWidth: "120px",
+                                                padding: "8px",
+                                                borderRadius: "6px",
+                                                border: "1px solid #232942",
+                                                background: "#151624",
+                                                color: "#efeff5"
+                                            }
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 664,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/planner/page.tsx",
+                                    lineNumber: 648,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    style: {
+                                        display: "flex",
+                                        gap: "10px",
+                                        flexWrap: "wrap"
+                                    },
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            onClick: handleLogin,
+                                            style: {
+                                                flex: 1,
+                                                minWidth: "80px",
+                                                padding: "8px",
+                                                background: "#2352a1",
+                                                color: "white",
+                                                border: "none",
+                                                borderRadius: "6px",
+                                                fontWeight: "bold",
+                                                cursor: "pointer"
+                                            },
+                                            children: "Login"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 681,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            onClick: handleSignUp,
+                                            style: {
+                                                flex: 1,
+                                                minWidth: "80px",
+                                                padding: "8px",
+                                                background: "#43ea8f",
+                                                color: "black",
+                                                border: "none",
+                                                borderRadius: "6px",
+                                                fontWeight: "bold",
+                                                cursor: "pointer"
+                                            },
+                                            children: "Sign Up"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 697,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/planner/page.tsx",
+                                    lineNumber: 680,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    style: {
+                                        fontSize: "0.9rem",
+                                        color: "#abd6ff",
+                                        marginTop: "8px"
+                                    },
+                                    children: "💡 Sign up to sync across devices manually!"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/planner/page.tsx",
+                                    lineNumber: 714,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/app/planner/page.tsx",
+                            lineNumber: 644,
+                            columnNumber: 13
+                        }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    style: {
+                                        color: "#c4d7fd",
+                                        fontWeight: "bold"
+                                    },
+                                    children: [
+                                        "✅ Logged in as:",
+                                        " ",
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                            style: {
+                                                color: "#43ea8f"
+                                            },
+                                            children: user?.email
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 722,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/planner/page.tsx",
+                                    lineNumber: 720,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    style: {
+                                        color: syncStatus === "Synced ✅" ? "#43ea8f" : "#ffba1a",
+                                        fontSize: "0.9rem",
+                                        marginTop: "4px",
+                                        marginBottom: "10px"
+                                    },
+                                    children: [
+                                        "Sync Status: ",
+                                        syncStatus
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/planner/page.tsx",
+                                    lineNumber: 724,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    style: {
+                                        display: "flex",
+                                        gap: "8px",
+                                        marginBottom: "10px",
+                                        flexWrap: "wrap"
+                                    },
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            onClick: handleSyncLoad,
+                                            style: {
+                                                flex: 1,
+                                                minWidth: "120px",
+                                                padding: "7px 15px",
+                                                background: "#29feef",
+                                                color: "black",
+                                                border: "none",
+                                                borderRadius: "8px",
+                                                fontWeight: "bold",
+                                                cursor: "pointer"
+                                            },
+                                            children: "⬇️ Sync Load"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 743,
+                                            columnNumber: 17
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            onClick: handleSyncSave,
+                                            style: {
+                                                flex: 1,
+                                                minWidth: "120px",
+                                                padding: "7px 15px",
+                                                background: "#217bf3",
+                                                color: "white",
+                                                border: "none",
+                                                borderRadius: "8px",
+                                                fontWeight: "bold",
+                                                cursor: "pointer"
+                                            },
+                                            children: "⬆️ Sync Save"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 759,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/planner/page.tsx",
+                                    lineNumber: 735,
+                                    columnNumber: 15
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    style: {
+                                        display: "flex",
+                                        gap: "8px",
+                                        flexWrap: "wrap"
+                                    },
+                                    children: [
+                                        installPrompt && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            onClick: handleInstallApp,
+                                            style: {
+                                                flex: 1,
+                                                minWidth: "120px",
+                                                padding: "7px 15px",
+                                                background: "#29feef",
+                                                color: "black",
+                                                border: "none",
+                                                borderRadius: "8px",
+                                                fontWeight: "bold",
+                                                cursor: "pointer"
+                                            },
+                                            children: "📱 Install App"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 778,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                            onClick: handleLogout,
+                                            style: {
+                                                flex: 1,
+                                                minWidth: "80px",
+                                                padding: "7px 12px",
+                                                background: "#fe3292",
+                                                color: "white",
+                                                border: "none",
+                                                borderRadius: "6px",
+                                                fontWeight: "bold",
+                                                cursor: "pointer"
+                                            },
+                                            children: "Logout"
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 795,
+                                            columnNumber: 17
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/planner/page.tsx",
+                                    lineNumber: 776,
+                                    columnNumber: 15
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/app/planner/page.tsx",
+                            lineNumber: 719,
+                            columnNumber: 13
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 635,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
+                        style: {
+                            color: "#c4d7fd",
+                            fontWeight: "900",
+                            fontSize: "2.08rem",
+                            marginBottom: "11px",
+                            letterSpacing: "-1.5px"
+                        },
+                        children: "🚀 FMGE Planner Dashboard"
+                    }, void 0, false, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 816,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        style: {
+                            color: "#43ea8f",
+                            fontWeight: "bold",
+                            fontSize: "1.08rem",
+                            marginBottom: "12px"
+                        },
+                        children: [
+                            "🎯 ",
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                children: "Goal:"
+                            }, void 0, false, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 835,
+                                columnNumber: 14
+                            }, this),
+                            " ",
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                style: {
+                                    color: "#eaeefa",
+                                    fontWeight: "normal"
+                                },
+                                children: goal
+                            }, void 0, false, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 836,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 827,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                        style: {
+                            width: "99.5%",
+                            background: "#18192b",
+                            color: "#eaeefa",
+                            padding: "11px",
+                            border: "1.3px solid #232942",
+                            borderRadius: "8px",
+                            marginBottom: "17px",
+                            fontSize: "1.06rem"
+                        },
+                        value: goal,
+                        onChange: (e)=>setGoal(e.target.value)
+                    }, void 0, false, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 838,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        style: {
+                            marginBottom: "15px"
+                        },
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                style: {
+                                    color: "#c4d7fd",
+                                    fontWeight: "bold",
+                                    fontSize: "1rem",
+                                    marginBottom: "4px",
+                                    display: "block"
+                                },
+                                children: [
+                                    "📊 Weekly MCQ Goal: ",
+                                    mcqGoal
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 854,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                type: "range",
+                                min: "50",
+                                max: "1000",
+                                step: "50",
+                                value: mcqGoal,
+                                onChange: (e)=>setMcqGoal(Number(e.target.value)),
+                                style: {
+                                    width: "100%",
+                                    cursor: "pointer"
+                                }
+                            }, void 0, false, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 865,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 853,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        style: {
+                            display: "flex",
+                            gap: "19px",
+                            marginBottom: "18px",
+                            flexWrap: "wrap"
+                        },
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                style: {
+                                    flex: 1,
+                                    minWidth: "200px",
+                                    background: "#18192b",
+                                    padding: "13px",
+                                    borderRadius: "13px"
+                                },
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.06rem"
+                                        },
+                                        children: "📈 Subject Progress"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 886,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        style: {
+                                            background: "#151624",
+                                            borderRadius: "8px",
+                                            padding: "7px",
+                                            marginTop: "9px"
+                                        },
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                height: "16px",
+                                                backgroundColor: "#2352a1",
+                                                width: `${completedSubjects / totalSubjects * 100 || 0}%`,
+                                                borderRadius: "8px",
+                                                transition: "width 0.3s"
+                                            }
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 903,
+                                            columnNumber: 15
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 895,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        style: {
+                                            fontSize: "0.96rem",
+                                            marginTop: "5px"
+                                        },
+                                        children: [
+                                            completedSubjects,
+                                            " / ",
+                                            totalSubjects,
+                                            " completed"
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 913,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 877,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                style: {
+                                    flex: 1,
+                                    minWidth: "200px",
+                                    background: "#18192b",
+                                    padding: "13px",
+                                    borderRadius: "13px"
+                                },
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.06rem"
+                                        },
+                                        children: "📝 MCQ Progress"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 926,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        style: {
+                                            background: "#151624",
+                                            borderRadius: "8px",
+                                            padding: "7px",
+                                            marginTop: "9px"
+                                        },
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                height: "16px",
+                                                background: "#252942",
+                                                width: `${doneMCQ / totalMCQ * 100 || 0}%`,
+                                                borderRadius: "8px",
+                                                transition: "width 0.3s"
+                                            }
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 943,
+                                            columnNumber: 15
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 935,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        style: {
+                                            fontSize: "0.96rem",
+                                            marginTop: "5px"
+                                        },
+                                        children: [
+                                            doneMCQ,
+                                            " / ",
+                                            totalMCQ,
+                                            " MCQs done"
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 953,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 917,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 876,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        style: {
+                            display: "flex",
+                            alignItems: "center",
+                            marginBottom: "13px",
+                            gap: "18px",
+                            flexWrap: "wrap"
+                        },
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                style: {
+                                    background: "#18192b",
+                                    borderRadius: "10px",
+                                    padding: "10px 15px",
+                                    flex: 1.2,
+                                    minHeight: "58px"
+                                },
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("b", {
+                                        children: "🔥 Daily Study Streak:"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 977,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                        style: {
+                                            color: "#43ea8f",
+                                            fontSize: "1.12rem",
+                                            marginLeft: "4px"
+                                        },
+                                        children: [
+                                            streak,
+                                            " days"
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 978,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                        style: {
+                                            marginLeft: "14px",
+                                            background: "#2352a1",
+                                            color: "#fff",
+                                            borderRadius: "7px",
+                                            border: "none",
+                                            padding: "6px 13px",
+                                            fontWeight: "bold",
+                                            fontSize: "1.04rem",
+                                            boxShadow: "0 1px 13px #23263b22",
+                                            cursor: todayStudied ? "not-allowed" : "pointer",
+                                            opacity: todayStudied ? 0.7 : 1,
+                                            transition: "background 0.12s",
+                                            minHeight: "36px"
+                                        },
+                                        onClick: handleLogStreak,
+                                        disabled: todayStudied,
+                                        children: "+ Log"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 987,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 968,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                style: {
+                                    background: "#18192b",
+                                    borderRadius: "10px",
+                                    padding: "10px 15px",
+                                    flex: 1,
+                                    minHeight: "58px"
+                                },
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("b", {
+                                        children: "🧠 Wellness:"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1018,
+                                        columnNumber: 13
+                                    }, this),
+                                    wellness.map((val, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                            style: {
+                                                display: "inline-block",
+                                                marginLeft: "2px",
+                                                color: val <= 2 ? "#fe3292" : val == 3 ? "#ffba1a" : "#43ea8f",
+                                                fontSize: "1.11rem"
+                                            },
+                                            children: "●"
+                                        }, i, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1020,
+                                            columnNumber: 15
+                                        }, this)),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                        style: {
+                                            marginLeft: "7px",
+                                            fontSize: "1.05rem",
+                                            borderRadius: "5px",
+                                            padding: "2px 7px"
+                                        },
+                                        onChange: (e)=>handleWellnessChange(Number(e.target.value)),
+                                        defaultValue: "",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: "",
+                                                disabled: true,
+                                                children: "Day"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1043,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 1,
+                                                children: "😥"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1046,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 2,
+                                                children: "😐"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1047,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 3,
+                                                children: "🙂"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1048,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 4,
+                                                children: "😊"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1049,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 5,
+                                                children: "😁"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1050,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1033,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1009,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 959,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                        onClick: ()=>setShowCharts(true),
+                        style: {
+                            width: "100%",
+                            background: "#43ea8f",
+                            color: "black",
+                            border: "none",
+                            padding: "12px",
+                            borderRadius: "8px",
+                            fontWeight: "bold",
+                            fontSize: "1.04rem",
+                            cursor: "pointer",
+                            marginBottom: "20px"
+                        },
+                        children: "📊 View Analytics"
+                    }, void 0, false, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 1055,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
+                        onSubmit: handleAddSubject,
+                        style: {
+                            display: "grid",
+                            gridTemplateColumns: "repeat(4, 1fr)",
+                            gap: "18px",
+                            marginBottom: "27px",
+                            alignItems: "end",
+                            background: "#18192b",
+                            borderRadius: "16px",
+                            padding: "20px 20px"
+                        },
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                style: {
+                                    gridColumn: "span 2"
+                                },
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.03rem",
+                                            marginBottom: "4px",
+                                            display: "block"
+                                        },
+                                        children: "Subject Name 📝"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1088,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                        style: {
+                                            width: "100%",
+                                            background: "#151624",
+                                            color: "#efeff5",
+                                            borderRadius: "8px",
+                                            border: "1px solid #2c3550",
+                                            padding: "12px",
+                                            fontSize: "1.08rem"
+                                        },
+                                        placeholder: "e.g. Pathology",
+                                        value: newSubject,
+                                        onChange: (e)=>setNewSubject(e.target.value),
+                                        required: true
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1099,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1087,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.03rem",
+                                            marginBottom: "4px",
+                                            display: "block"
+                                        },
+                                        children: "Deadline 📅"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1116,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                        type: "date",
+                                        style: {
+                                            width: "100%",
+                                            background: "#151624",
+                                            color: "#efeff5",
+                                            borderRadius: "8px",
+                                            border: "1px solid #2c3550",
+                                            padding: "12px",
+                                            fontSize: "1.08rem"
+                                        },
+                                        value: newDeadline,
+                                        onChange: (e)=>setNewDeadline(e.target.value),
+                                        required: true
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1127,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1115,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.03rem",
+                                            marginBottom: "4px",
+                                            display: "block"
+                                        },
+                                        children: "Type/Tag 🏷️"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1144,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                        value: newTag,
+                                        style: {
+                                            width: "100%",
+                                            background: "#151624",
+                                            color: "#efeff5",
+                                            borderRadius: "8px",
+                                            border: "1px solid #2c3550",
+                                            padding: "12px",
+                                            fontSize: "1.08rem"
+                                        },
+                                        onChange: (e)=>setNewTag(e.target.value),
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: "exam",
+                                                children: "Exam"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1168,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: "revision",
+                                                children: "Revision"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1169,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: "review",
+                                                children: "Review"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1170,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: "mcq",
+                                                children: "MCQ Practice"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1171,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1155,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1143,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                style: {
+                                    gridColumn: "span 2"
+                                },
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.03rem",
+                                            marginBottom: "4px",
+                                            display: "block"
+                                        },
+                                        children: "Notes or Resource 🔗"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1175,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                        style: {
+                                            width: "100%",
+                                            background: "#151624",
+                                            color: "#efeff5",
+                                            borderRadius: "8px",
+                                            border: "1px solid #2c3550",
+                                            padding: "12px",
+                                            fontSize: "1.08rem"
+                                        },
+                                        placeholder: "PDF, book, tip...",
+                                        value: newNote,
+                                        onChange: (e)=>setNewNote(e.target.value)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1186,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1174,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.03rem",
+                                            marginBottom: "4px",
+                                            display: "block"
+                                        },
+                                        children: "MCQs Total 🔢"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1202,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                        type: "number",
+                                        min: 0,
+                                        style: {
+                                            width: "100%",
+                                            background: "#151624",
+                                            color: "#efeff5",
+                                            borderRadius: "8px",
+                                            border: "1px solid #2c3550",
+                                            padding: "12px",
+                                            fontSize: "1.08rem"
+                                        },
+                                        placeholder: "Max Qs",
+                                        value: newMcqTotal,
+                                        onChange: (e)=>setNewMcqTotal(Number(e.target.value))
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1213,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1201,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.03rem",
+                                            marginBottom: "4px",
+                                            display: "block"
+                                        },
+                                        children: "MCQs Done ✅"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1231,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                        type: "number",
+                                        min: 0,
+                                        style: {
+                                            width: "100%",
+                                            background: "#151624",
+                                            color: "#efeff5",
+                                            borderRadius: "8px",
+                                            border: "1px solid #2c3550",
+                                            padding: "12px",
+                                            fontSize: "1.08rem"
+                                        },
+                                        placeholder: "Done Qs",
+                                        value: newMcqDone,
+                                        onChange: (e)=>setNewMcqDone(Number(e.target.value))
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1242,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1230,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.03rem",
+                                            marginBottom: "4px",
+                                            display: "block"
+                                        },
+                                        children: "Color Code 🎨"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1260,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                        type: "color",
+                                        value: newColor,
+                                        onChange: (e)=>setNewColor(e.target.value),
+                                        style: {
+                                            width: "100%",
+                                            height: "39px",
+                                            borderRadius: "8px",
+                                            border: "none",
+                                            background: "#151624"
+                                        }
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1271,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1259,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.03rem",
+                                            marginBottom: "4px",
+                                            display: "block"
+                                        },
+                                        children: [
+                                            "High Priority",
+                                            " ",
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                style: {
+                                                    color: "#f5c500",
+                                                    fontSize: "1.12rem"
+                                                },
+                                                children: "⭐"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1295,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1285,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        style: {
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 10
+                                        },
+                                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                            type: "checkbox",
+                                            checked: newPriority,
+                                            onChange: (e)=>setNewPriority(e.target.checked),
+                                            style: {
+                                                accentColor: "#f5c500",
+                                                width: 22,
+                                                height: 22,
+                                                margin: 0
+                                            }
+                                        }, void 0, false, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1298,
+                                            columnNumber: 15
+                                        }, this)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1297,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1284,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.03rem",
+                                            marginBottom: "4px",
+                                            display: "block"
+                                        },
+                                        children: "Main Book/Video 📗"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1312,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                        style: {
+                                            width: "100%",
+                                            background: "#151624",
+                                            color: "#efeff5",
+                                            borderRadius: "8px",
+                                            border: "1px solid #2c3550",
+                                            padding: "12px",
+                                            fontSize: "1.08rem"
+                                        },
+                                        placeholder: "Book/Video",
+                                        value: newResource,
+                                        onChange: (e)=>setNewResource(e.target.value)
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1323,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1311,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                        style: {
+                                            color: "#c4d7fd",
+                                            fontWeight: "bold",
+                                            fontSize: "1.03rem",
+                                            marginBottom: "4px",
+                                            display: "block"
+                                        },
+                                        children: "Resource Rating 🌟"
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1339,
+                                        columnNumber: 13
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                        value: newResourceRating,
+                                        onChange: (e)=>setNewResourceRating(Number(e.target.value)),
+                                        style: {
+                                            width: "100%",
+                                            background: "#151624",
+                                            color: "#efeff5",
+                                            borderRadius: "8px",
+                                            border: "1px solid #2c3550",
+                                            padding: "12px",
+                                            fontSize: "1.08rem"
+                                        },
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 0,
+                                                children: "Rate"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1363,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 1,
+                                                children: "1★"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1364,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 2,
+                                                children: "2★"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1365,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 3,
+                                                children: "3★"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1366,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 4,
+                                                children: "4★"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1367,
+                                                columnNumber: 15
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                value: 5,
+                                                children: "5★"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/planner/page.tsx",
+                                                lineNumber: 1368,
+                                                columnNumber: 15
+                                            }, this)
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/planner/page.tsx",
+                                        lineNumber: 1350,
+                                        columnNumber: 13
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1338,
+                                columnNumber: 11
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                style: {
+                                    gridColumn: "span 4"
+                                },
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                    type: "submit",
+                                    style: {
+                                        background: "#2352a1",
+                                        color: "white",
+                                        border: "none",
+                                        borderRadius: "10px",
+                                        fontWeight: "bold",
+                                        padding: "16px 0",
+                                        width: "100%",
+                                        fontSize: "1.12rem",
+                                        cursor: "pointer",
+                                        boxShadow: "0 2px 13px #23263b14"
+                                    },
+                                    children: "+ Add Subject"
+                                }, void 0, false, {
+                                    fileName: "[project]/app/planner/page.tsx",
+                                    lineNumber: 1372,
+                                    columnNumber: 13
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1371,
+                                columnNumber: 11
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 1074,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                        style: {
+                            color: "#c4d7fd",
+                            fontSize: "1.16rem",
+                            marginBottom: "15px",
+                            fontWeight: "800",
+                            letterSpacing: "-0.5px"
+                        },
+                        children: "📚 Your Subjects"
+                    }, void 0, false, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 1393,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                        style: {
+                            listStyle: "none",
+                            padding: 0,
+                            margin: 0
+                        },
+                        children: subjects.map((subj, i)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                style: {
+                                    background: subj.color || "#18192b",
+                                    color: "#efeff5",
+                                    borderRadius: "12px",
+                                    border: "1.6px solid #232942",
+                                    marginBottom: "15px",
+                                    padding: "18px 17px",
+                                    boxShadow: "0 2px 8px 0 rgba(50,80,120,0.10)",
+                                    opacity: subj.completed ? 0.45 : 1,
+                                    position: "relative",
+                                    fontSize: "1.02rem"
+                                },
+                                children: editIndex === i ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    style: {
+                                        display: "grid",
+                                        gridTemplateColumns: "repeat(4, 1fr)",
+                                        gap: 12
+                                    },
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "Subject Name:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1430,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    value: editFields.name || "",
+                                                    onChange: (e)=>handleEditChange("name", e.target.value),
+                                                    style: {
+                                                        background: "#18192b",
+                                                        border: "1px solid #232942",
+                                                        color: "#efeff5",
+                                                        padding: "8px",
+                                                        borderRadius: "7px",
+                                                        width: "100%"
+                                                    }
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1441,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1429,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "Deadline:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1457,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    type: "date",
+                                                    value: editFields.deadline || "",
+                                                    onChange: (e)=>handleEditChange("deadline", e.target.value),
+                                                    style: {
+                                                        background: "#18192b",
+                                                        border: "1px solid #232942",
+                                                        color: "#efeff5",
+                                                        padding: "8px",
+                                                        borderRadius: "7px",
+                                                        width: "100%"
+                                                    }
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1468,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1456,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "Notes/Resource:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1485,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    value: editFields.note || "",
+                                                    onChange: (e)=>handleEditChange("note", e.target.value),
+                                                    style: {
+                                                        background: "#18192b",
+                                                        border: "1px solid #232942",
+                                                        color: "#efeff5",
+                                                        padding: "8px",
+                                                        borderRadius: "7px",
+                                                        width: "100%"
+                                                    }
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1496,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1484,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "Type/Tag:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1512,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                                    value: editFields.tag || "",
+                                                    onChange: (e)=>handleEditChange("tag", e.target.value),
+                                                    style: {
+                                                        background: "#18192b",
+                                                        color: "#efeff5",
+                                                        borderRadius: "7px",
+                                                        padding: "8px",
+                                                        width: "100%"
+                                                    },
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                            value: "exam",
+                                                            children: "Exam"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1536,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                            value: "revision",
+                                                            children: "Revision"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1537,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                            value: "review",
+                                                            children: "Review"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1538,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                            value: "mcq",
+                                                            children: "MCQ Practice"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1539,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1523,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1511,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "Color:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1543,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    type: "color",
+                                                    value: editFields.color || "#2352a1",
+                                                    onChange: (e)=>handleEditChange("color", e.target.value),
+                                                    style: {
+                                                        height: "35px",
+                                                        width: "100%",
+                                                        borderRadius: "7px",
+                                                        border: "none"
+                                                    }
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1554,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1542,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "High Priority:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1569,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    style: {
+                                                        display: "flex",
+                                                        alignItems: "center"
+                                                    },
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                            type: "checkbox",
+                                                            checked: editFields.priority || false,
+                                                            onChange: (e)=>handleEditChange("priority", e.target.checked),
+                                                            style: {
+                                                                marginRight: 6
+                                                            }
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1581,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            style: {
+                                                                color: "#f5c500",
+                                                                marginLeft: "5px"
+                                                            },
+                                                            children: "⭐"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1589,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1580,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1568,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "MCQs Total:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1595,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    type: "number",
+                                                    min: 0,
+                                                    style: {
+                                                        width: "100%",
+                                                        background: "#18192b",
+                                                        color: "#efeff5",
+                                                        borderRadius: "6px",
+                                                        padding: "8px"
+                                                    },
+                                                    value: editFields.mcqTotal || 0,
+                                                    onChange: (e)=>handleEditChange("mcqTotal", Number(e.target.value))
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1606,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1594,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "MCQs Done:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1623,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    type: "number",
+                                                    min: 0,
+                                                    style: {
+                                                        width: "100%",
+                                                        background: "#18192b",
+                                                        color: "#efeff5",
+                                                        borderRadius: "6px",
+                                                        padding: "8px"
+                                                    },
+                                                    value: editFields.mcqDone || 0,
+                                                    onChange: (e)=>handleEditChange("mcqDone", Number(e.target.value))
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1634,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1622,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "Book/Video:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1651,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    style: {
+                                                        width: "100%",
+                                                        background: "#18192b",
+                                                        color: "#efeff5",
+                                                        borderRadius: "6px",
+                                                        padding: "8px"
+                                                    },
+                                                    value: editFields.resource || "",
+                                                    onChange: (e)=>handleEditChange("resource", e.target.value)
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1662,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1650,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "Resource Rating:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1677,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
+                                                    value: editFields.resourceRating || 0,
+                                                    onChange: (e)=>handleEditChange("resourceRating", Number(e.target.value)),
+                                                    style: {
+                                                        width: "100%",
+                                                        background: "#18192b",
+                                                        color: "#efeff5",
+                                                        borderRadius: "6px",
+                                                        padding: "8px"
+                                                    },
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                            value: 0,
+                                                            children: "Rate"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1701,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                            value: 1,
+                                                            children: "1★"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1702,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                            value: 2,
+                                                            children: "2★"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1703,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                            value: 3,
+                                                            children: "3★"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1704,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                            value: 4,
+                                                            children: "4★"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1705,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
+                                                            value: 5,
+                                                            children: "5★"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1706,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1688,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1676,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
+                                                    style: {
+                                                        color: "#c4d7fd",
+                                                        fontWeight: "bold",
+                                                        fontSize: "0.96rem",
+                                                        marginBottom: "2px",
+                                                        display: "block"
+                                                    },
+                                                    children: "Completed:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1710,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    style: {
+                                                        display: "flex",
+                                                        alignItems: "center"
+                                                    },
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                            type: "checkbox",
+                                                            checked: editFields.completed || false,
+                                                            onChange: (e)=>handleEditChange("completed", e.target.checked),
+                                                            style: {
+                                                                marginRight: 6
+                                                            }
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1722,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            style: {
+                                                                color: "#43ea8f"
+                                                            },
+                                                            children: "✅"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1730,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1721,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1709,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                gridColumn: "span 4",
+                                                marginTop: "10px"
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                    style: {
+                                                        background: "#43ea8f",
+                                                        border: "none",
+                                                        borderRadius: "7px",
+                                                        padding: "8px 16px",
+                                                        marginRight: 8,
+                                                        fontWeight: "bold",
+                                                        cursor: "pointer"
+                                                    },
+                                                    onClick: ()=>handleEditSave(i),
+                                                    children: "✅ Save"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1734,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                    style: {
+                                                        background: "#fe3292",
+                                                        border: "none",
+                                                        borderRadius: "7px",
+                                                        padding: "8px 16px",
+                                                        color: "#fff",
+                                                        fontWeight: "bold",
+                                                        cursor: "pointer"
+                                                    },
+                                                    onClick: ()=>setEditIndex(null),
+                                                    children: "Cancel"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1748,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1733,
+                                            columnNumber: 19
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/app/planner/page.tsx",
+                                    lineNumber: 1422,
+                                    columnNumber: 17
+                                }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                marginBottom: "7px"
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    style: {
+                                                        fontWeight: "bold",
+                                                        fontSize: "1.08rem",
+                                                        letterSpacing: "-0.5px"
+                                                    },
+                                                    children: [
+                                                        subj.priority && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            style: {
+                                                                color: "#f5c500"
+                                                            },
+                                                            children: "⭐ "
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1782,
+                                                            columnNumber: 25
+                                                        }, this),
+                                                        subj.name,
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            style: {
+                                                                background: "#232942",
+                                                                color: "#c4d7fd",
+                                                                borderRadius: "5px",
+                                                                padding: "2px 8px",
+                                                                marginLeft: 8,
+                                                                fontSize: "0.94rem",
+                                                                fontWeight: "normal"
+                                                            },
+                                                            children: subj.tag
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1785,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1774,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    style: {
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: 9
+                                                    },
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                            title: "Edit",
+                                                            style: {
+                                                                background: "none",
+                                                                border: "none",
+                                                                color: "#29feef",
+                                                                fontWeight: "bold",
+                                                                fontSize: "1.13rem",
+                                                                cursor: "pointer",
+                                                                marginRight: 3
+                                                            },
+                                                            onClick: ()=>handleEditStart(i),
+                                                            children: "✏️"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1806,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                            title: "Delete",
+                                                            style: {
+                                                                background: "none",
+                                                                border: "none",
+                                                                color: "#fe3292",
+                                                                fontWeight: "bold",
+                                                                fontSize: "1.13rem",
+                                                                cursor: "pointer"
+                                                            },
+                                                            onClick: ()=>handleRemove(i),
+                                                            children: "🗑️"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1821,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1799,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1766,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                marginBottom: "3px"
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: "#b8cdf1",
+                                                        fontWeight: "bold",
+                                                        marginRight: "6px"
+                                                    },
+                                                    children: "Deadline:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1838,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: "#43ea8f"
+                                                    },
+                                                    children: subj.deadline
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1847,
+                                                    columnNumber: 21
+                                                }, this),
+                                                deadlineStatus(subj.deadline) && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: deadlineStatus(subj.deadline) === "Due soon" ? "#ffba1a" : deadlineStatus(subj.deadline) === "Due today" ? "#43ea8f" : "#fe3292",
+                                                        marginLeft: "12px"
+                                                    },
+                                                    children: [
+                                                        deadlineStatus(subj.deadline) === "Past due" && "⚠️",
+                                                        " ",
+                                                        deadlineStatus(subj.deadline)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1849,
+                                                    columnNumber: 23
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1837,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                marginBottom: "3px"
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: "#b8cdf1",
+                                                        fontWeight: "bold",
+                                                        marginRight: "6px"
+                                                    },
+                                                    children: "Notes/Resource:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1868,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: "#c7dafb"
+                                                    },
+                                                    children: subj.note || "None"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1877,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1867,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                marginBottom: "3px"
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: "#b8cdf1",
+                                                        fontWeight: "bold",
+                                                        marginRight: "6px"
+                                                    },
+                                                    children: "Main Book/Video:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1882,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: "#ffd36d"
+                                                    },
+                                                    children: [
+                                                        subj.resource || "Not set",
+                                                        subj.resourceRating > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            style: {
+                                                                color: "#ffba1a"
+                                                            },
+                                                            children: [
+                                                                " ",
+                                                                "(",
+                                                                subj.resourceRating,
+                                                                "★)"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 1894,
+                                                            columnNumber: 25
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1891,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1881,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                marginBottom: "4px"
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: "#b8cdf1",
+                                                        fontWeight: "bold",
+                                                        marginRight: "6px"
+                                                    },
+                                                    children: "MCQs:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1902,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    type: "number",
+                                                    min: 0,
+                                                    max: subj.mcqTotal,
+                                                    value: subj.mcqDone,
+                                                    onChange: (e)=>handleMCQDoneInput(i, Number(e.target.value)),
+                                                    style: {
+                                                        width: "75px",
+                                                        marginRight: "5px",
+                                                        background: "#151624",
+                                                        color: "#43ea8f",
+                                                        padding: "4px 7px",
+                                                        borderRadius: "6px",
+                                                        border: "1px solid #232942"
+                                                    }
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1911,
+                                                    columnNumber: 21
+                                                }, this),
+                                                " ",
+                                                "/ ",
+                                                subj.mcqTotal,
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        marginLeft: "10px",
+                                                        color: "#1cbe9e"
+                                                    },
+                                                    children: "+"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1930,
+                                                    columnNumber: 21
+                                                }, this),
+                                                [
+                                                    10,
+                                                    50,
+                                                    100,
+                                                    500
+                                                ].map((batch)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                                        type: "button",
+                                                        onClick: ()=>handleAddMCQ(i, batch),
+                                                        style: {
+                                                            marginLeft: "5px",
+                                                            background: "#232942",
+                                                            color: "#eaeefa",
+                                                            border: "none",
+                                                            fontWeight: "bold",
+                                                            padding: "3px 8px",
+                                                            borderRadius: "6px",
+                                                            cursor: "pointer",
+                                                            fontSize: "0.97rem",
+                                                            transition: "background 0.14s"
+                                                        },
+                                                        children: [
+                                                            "+",
+                                                            batch
+                                                        ]
+                                                    }, batch, true, {
+                                                        fileName: "[project]/app/planner/page.tsx",
+                                                        lineNumber: 1934,
+                                                        columnNumber: 23
+                                                    }, this))
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1901,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            style: {
+                                                marginBottom: "4px"
+                                            },
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: "#b8cdf1",
+                                                        fontWeight: "bold",
+                                                        marginRight: "6px"
+                                                    },
+                                                    children: "Status:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1956,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                                    type: "checkbox",
+                                                    checked: subj.completed,
+                                                    onChange: ()=>handleToggleComplete(i),
+                                                    style: {
+                                                        marginRight: "5px",
+                                                        accentColor: "#43ea8f",
+                                                        width: "19px",
+                                                        height: "19px"
+                                                    }
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1965,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: "#43ea8f"
+                                                    },
+                                                    children: subj.completed ? "Completed" : "Incomplete"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1976,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1955,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                    style: {
+                                                        color: "#b8cdf1",
+                                                        fontWeight: "bold",
+                                                        marginBottom: "4px",
+                                                        marginTop: "8px",
+                                                        display: "block"
+                                                    },
+                                                    children: "MCQ Log:"
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1981,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
+                                                    style: {
+                                                        listStyle: "none",
+                                                        margin: 0,
+                                                        paddingLeft: "0"
+                                                    },
+                                                    children: subj.mcqSessions.length ? subj.mcqSessions.slice(-7).reverse().map((s, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                            style: {
+                                                                color: "#abd6ff",
+                                                                fontSize: "0.96em",
+                                                                marginBottom: "2px"
+                                                            },
+                                                            children: [
+                                                                s.amount > 0 ? `+${s.amount} on ` : `${s.amount} changed on `,
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                    style: {
+                                                                        color: "#efd7ff"
+                                                                    },
+                                                                    children: new Date(s.date).toLocaleDateString(undefined, {
+                                                                        month: "short",
+                                                                        day: "numeric",
+                                                                        year: "2-digit"
+                                                                    })
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/app/planner/page.tsx",
+                                                                    lineNumber: 2013,
+                                                                    columnNumber: 31
+                                                                }, this)
+                                                            ]
+                                                        }, idx, true, {
+                                                            fileName: "[project]/app/planner/page.tsx",
+                                                            lineNumber: 2004,
+                                                            columnNumber: 29
+                                                        }, this)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
+                                                        style: {
+                                                            color: "#444"
+                                                        },
+                                                        children: "No sessions yet."
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/app/planner/page.tsx",
+                                                        lineNumber: 2026,
+                                                        columnNumber: 25
+                                                    }, this)
+                                                }, void 0, false, {
+                                                    fileName: "[project]/app/planner/page.tsx",
+                                                    lineNumber: 1992,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/app/planner/page.tsx",
+                                            lineNumber: 1980,
+                                            columnNumber: 19
+                                        }, this)
+                                    ]
+                                }, void 0, true)
+                            }, i, false, {
+                                fileName: "[project]/app/planner/page.tsx",
+                                lineNumber: 1406,
+                                columnNumber: 13
+                            }, this))
+                    }, void 0, false, {
+                        fileName: "[project]/app/planner/page.tsx",
+                        lineNumber: 1404,
+                        columnNumber: 9
+                    }, this)
+                ]
+            }, void 0, true, {
+                fileName: "[project]/app/planner/page.tsx",
+                lineNumber: 466,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                style: {
+                    maxWidth: "510px",
+                    fontStyle: "italic",
+                    fontSize: "1.09rem",
+                    color: "#b8cdf1",
+                    background: "#151624",
+                    borderRadius: "15px",
+                    padding: "19px 16px",
+                    marginBottom: "38px",
+                    boxShadow: "0 2px 14px 0 rgba(50,146,254,0.04)",
+                    border: "1.6px solid #23263b",
+                    lineHeight: "1.62"
+                },
+                children: "(Data saved locally. Press ⬇️ Sync Load and ⬆️ Sync Save buttons to manually sync with cloud!)"
+            }, void 0, false, {
+                fileName: "[project]/app/planner/page.tsx",
+                lineNumber: 2036,
+                columnNumber: 7
+            }, this)
+        ]
+    }, void 0, true, {
+        fileName: "[project]/app/planner/page.tsx",
+        lineNumber: 455,
+        columnNumber: 5
+    }, this);
+}
+}),
+];
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__622f23b4._.js.map
