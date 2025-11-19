@@ -1,28 +1,261 @@
-[00:00:04.072] Server  LOG      ✓ Ready in 2.2s
-[00:01:19.091] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:19.391] Browser ERROR   Auth error: {"__isAuthError":true,"name":"AuthSessionMissingError","status":400}
-[00:01:19.392] Browser LOG     Service Worker registered
-[00:02:04.035] Browser LOG     Cloud load successful
-[00:02:04.786] Browser LOG     Cloud save successful: null
-[00:02:04.786] Browser LOG     Cloud save successful: null
-[00:02:09.708] Server  LOG      ○ Compiling / ...
-[00:02:14.146] Server  WARN     ⚠ Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-[00:02:14.148] Server  WARN     ⚠ Unsupported metadata themeColor is configured in metadata export in /. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-[00:02:14.769] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:02:14.978] Browser LOG     Service Worker registered
-[00:02:50.304] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:02:50.447] Browser LOG     Service Worker registered
-[00:02:50.992] Browser LOG     User logged in: ryan.rodrigues@gmail.com
-[00:02:56.864] Browser LOG     Cloud save successful
-[00:03:11.409] Browser LOG     Cloud save successful
-[00:03:17.658] Server  LOG      ○ Compiling /planner ...
-[00:03:20.718] Server  WARN     ⚠ Unsupported metadata viewport is configured in metadata export in /planner. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-[00:03:20.719] Server  WARN     ⚠ Unsupported metadata themeColor is configured in metadata export in /planner. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
-[00:03:21.605] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:03:21.825] Browser LOG     Service Worker registered
-[00:03:22.363] Browser LOG     No active session
-[00:03:40.601] Browser LOG     Cloud data loaded: {"created_at":"2025-11-16T08:28:29.697836","goal":"Study at least 2 hours/day, complete 200 MCQs/week","id":"fc9c3a56-ba6b-4819-983b-3e56dad550cb","mcqGoal":200,"mcqgoal":null,"streak":0,"subjects":[{"color":"#2352a1","completed":false,"deadline":"2025-11-25","mcqDone":150,"mcqSessions":[{"amount":150,"date":"2025-11-16"}],"mcqTotal":1000,"name":"Anatomy","note":"","priority":false,"resource":"BRS Anatomy","resourceRating":4,"tag":"exam"},{"color":"#2352a1","completed":false,"deadline":"2025-11-18","mcqDone":0,"mcqSessions":[],"mcqTotal":0,"name":"Patho","note":"","priority":false,"resource":"","resourceRating":0,"tag":"exam"},{"color":"#2352a1","completed":false,"deadline":"2025-12-16","mcqDone":0,"mcqSessions":[],"mcqTotal":0,"name":"test","note":"","priority":false,"resource":"","resourceRating":0,"tag":"exam"},{"color":"#2352a1","completed":false,"deadline":"2026-01-27","mcqDone":0,"mcqSessions":[],"mcqTotal":0,"name":"tsrt","note":"","priority":false,"resource":"","resourceRating":0,"tag":"exam"}],"updated_at":"2025-11-16T19:00:18.772","user_id":"251e408c-3fed-4d23-acf9-2a115da10ebe","wellness":[3,3,3,3,3,3,3]}
+[00:00:02.104] Server  LOG      ✓ Ready in 1305ms
+[00:01:51.217] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:51.452] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+      <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+        <RedirectBoundary>
+          <RedirectErrorBoundary router={{...}}>
+            <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+              <SegmentViewNode type="page" pagePath="page.tsx">
+                <SegmentTrieNode>
+                <ClientPageRoot Component={function Home} serverProvidedParams={{...}}>
+                  <Home params={Promise} searchParams={Promise}>
+                    <div style={{...}}>
+                      <div style={{width:"100%", ...}}>
+                        <div>
+                        <h1>
+                        <div>
+                        <input>
+                        <div>
+                        <div>
+                        <form>
+                        <h2>
+                        <ul style={{...}}>
+                          <li style={{...}}>
+                            <div>
+                            <div style={{...}}>
+                              <span>
+                              <span>
++                             <span style={{color:"#ffba1a",marginLeft:"12px"}}>
+                            ...
+                      ...
+              ...
+            ...
+
+[00:01:51.452] Browser LOG     Service Worker registered
+[00:01:52.624] Browser LOG     Cloud load successful
+[00:01:52.624] Browser LOG     Cloud load successful
+[00:01:53.327] Browser LOG     Cloud save successful: null
+[00:01:53.328] Browser LOG     Cloud save successful: null
+[00:01:53.328] Browser LOG     Cloud save successful: null
+[00:01:56.208] Server  LOG      ○ Compiling / ...
+[00:01:58.880] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:40.232] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:40.539] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+      <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+        <RedirectBoundary>
+          <RedirectErrorBoundary router={{...}}>
+            <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+              <SegmentViewNode type="page" pagePath="page.tsx">
+                <SegmentTrieNode>
+                <ClientPageRoot Component={function Home} serverProvidedParams={{...}}>
+                  <Home params={Promise} searchParams={Promise}>
+                    <div style={{...}}>
+                      <div style={{width:"100%", ...}}>
+                        <div>
+                        <h1>
+                        <div>
+                        <input>
+                        <div>
+                        <div>
+                        <form>
+                        <h2>
+                        <ul style={{...}}>
+                          <li style={{...}}>
+                            <div>
+                            <div style={{...}}>
+                              <span>
+                              <span>
++                             <span style={{color:"#ffba1a",marginLeft:"12px"}}>
+                            ...
+                      ...
+              ...
+            ...
+
+[00:02:40.757] Browser LOG     Service Worker registered
+[00:02:40.758] Browser LOG     Cloud load successful
+[00:02:40.758] Browser LOG     Cloud load successful
+[00:02:41.059] Browser LOG     Cloud save successful: null
+[00:02:41.060] Browser LOG     Cloud save successful: null
+[00:02:41.187] Browser LOG     Cloud save successful: null
+[00:02:41.187] Browser LOG     Cloud save successful: null
+[00:02:41.611] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:17:51.125] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:17:51.451] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+      <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+        <RedirectBoundary>
+          <RedirectErrorBoundary router={{...}}>
+            <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+              <SegmentViewNode type="page" pagePath="page.tsx">
+                <SegmentTrieNode>
+                <ClientPageRoot Component={function Home} serverProvidedParams={{...}}>
+                  <Home params={Promise} searchParams={Promise}>
+                    <div style={{...}}>
+                      <div style={{width:"100%", ...}}>
+                        <div>
+                        <h1>
+                        <div>
+                        <input>
+                        <div>
+                        <div>
+                        <form>
+                        <h2>
+                        <ul style={{...}}>
+                          <li style={{...}}>
+                            <div>
+                            <div style={{...}}>
+                              <span>
+                              <span>
++                             <span style={{color:"#ffba1a",marginLeft:"12px"}}>
+                            ...
+                      ...
+              ...
+            ...
+
+[00:17:51.631] Browser LOG     Service Worker registered
+[00:17:51.631] Browser LOG     Cloud load successful
+[00:17:51.631] Browser LOG     Cloud load successful
+[00:17:52.549] Browser LOG     Cloud save successful: null
+[00:17:52.549] Browser LOG     Cloud save successful: null
+[00:17:52.549] Browser LOG     Cloud save successful: null
+[00:17:52.550] Browser LOG     Cloud save successful: null
+[00:17:53.791] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:35:38.065] Server  LOG      ✓ Compiled in 79ms
+[00:40:01.753] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:40:01.947] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+      <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+        <RedirectBoundary>
+          <RedirectErrorBoundary router={{...}}>
+            <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+              <SegmentViewNode type="page" pagePath="page.tsx">
+                <SegmentTrieNode>
+                <ClientPageRoot Component={function Home} serverProvidedParams={{...}}>
+                  <Home params={Promise} searchParams={Promise}>
+                    <div style={{...}}>
+                      <div style={{width:"100%", ...}}>
+                        <div>
+                        <h1>
+                        <div>
+                        <input>
+                        <div>
+                        <div>
+                        <form>
+                        <h2>
+                        <ul style={{...}}>
+                          <li style={{...}}>
+                            <div>
+                            <div style={{...}}>
+                              <span>
+                              <span>
++                             <span style={{color:"#ffba1a",marginLeft:"12px"}}>
+                            ...
+                      ...
+              ...
+            ...
+
+[00:40:02.191] Browser LOG     Service Worker registered
+[00:40:02.191] Browser LOG     Cloud load successful
+[00:40:02.191] Browser LOG     Cloud load successful
+[00:40:03.244] Browser LOG     Cloud save successful: null
+[00:40:03.244] Browser LOG     Cloud save successful: null
+[00:40:03.244] Browser LOG     Cloud save successful: null
+[00:40:03.244] Browser LOG     Cloud save successful: null
+[00:40:03.817] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:26:15.722] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:26:15.872] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HTTPAccessFallbackBoundary notFound={<SegmentViewNode>} forbidden={undefined} unauthorized={undefined}>
+      <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<SegmentViewNode>} forbidden={undefined} ...>
+        <RedirectBoundary>
+          <RedirectErrorBoundary router={{...}}>
+            <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{lazyData:null, ...}} segmentPath={[...]} ...>
+              <SegmentViewNode type="page" pagePath="page.tsx">
+                <SegmentTrieNode>
+                <ClientPageRoot Component={function Home} serverProvidedParams={{...}}>
+                  <Home params={Promise} searchParams={Promise}>
+                    <div style={{...}}>
+                      <div style={{width:"100%", ...}}>
+                        <div>
+                        <h1>
+                        <div>
+                        <input>
+                        <div>
+                        <div>
+                        <form>
+                        <h2>
+                        <ul style={{...}}>
+                          <li style={{...}}>
+                            <div>
+                            <div style={{...}}>
+                              <span>
+                              <span>
++                             <span style={{color:"#ffba1a",marginLeft:"12px"}}>
+                            ...
+                      ...
+              ...
+            ...
+
+[02:26:16.003] Browser LOG     Service Worker registered
+[02:26:17.062] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

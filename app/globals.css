@@ -1,6 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 * {
   margin: 0;
   padding: 0;
@@ -8,99 +5,18 @@
 }
 
 html, body {
-  font-family: Inter, Arial, sans-serif;
-  background: #11131c;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  background: #0f111a;
   color: #efeff5;
   overflow-x: hidden;
 }
 
-/* Mobile First Approach */
-@media (max-width: 480px) {
-  body {
-    font-size: 14px;
-  }
-
-  input, textarea, select, button {
-    font-size: 16px !important; /* Prevents auto-zoom on iOS */
-    padding: 12px !important;
-    min-height: 44px !important; /* Touch target minimum */
-    min-width: 44px !important;
-  }
-
-  .dashboard-container {
-    max-width: 100%;
-    margin: 10px !important;
-    padding: 16px !important;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
-
-  .subject-card {
-    padding: 12px !important;
-    font-size: 0.95rem !important;
-  }
-
-  .button-group {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .button-group button {
-    width: 100%;
-    margin-bottom: 8px;
-  }
-
-  .hamburger-menu {
-    display: block;
-  }
-
-  .nav-hidden {
-    display: none;
-  }
-
-  .nav-hidden.show {
-    display: flex;
-    flex-direction: column;
-    position: absolute;
-    top: 50px;
-    left: 0;
-    right: 0;
-    background: #151624;
-    z-index: 100;
-    padding: 10px;
-  }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-/* Tablet */
-@media (min-width: 481px) and (max-width: 768px) {
-  .form-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-
-  .dashboard-container {
-    max-width: 100%;
-    padding: 20px !important;
-  }
-
-  .hamburger-menu {
-    display: none;
-  }
-}
-
-/* Desktop */
-@media (min-width: 769px) {
-  .form-grid {
-    grid-template-columns: repeat(4, 1fr) !important;
-  }
-
-  .dashboard-container {
-    max-width: 740px;
-  }
-
-  .hamburger-menu {
-    display: none;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }

@@ -1,0 +1,546 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1d2e 0%, #16182a 50%, #1a1d2e 100%);
+  color: #f3f4f6;
+  padding-bottom: 5rem;
+}
+
+.header {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 3rem 1rem 2.5rem;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.iconBox {
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: #a855f7;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+}
+
+.subtitle {
+  color: #9ca3af;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+@media (min-width: 768px) {
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.statCard {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.statCardAlt {
+  background: rgba(31, 41, 55, 0.5);
+  border: 1px solid rgba(75, 85, 99, 0.5);
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+.statCardContent {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.progressCircle {
+  position: relative;
+  width: 7rem;
+  height: 7rem;
+  flex-shrink: 0;
+}
+
+.progressCircle svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progressCircleText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.progressPercent {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+}
+
+.statTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.statDescription {
+  color: #d1d5db;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.resetButton {
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.resetButton:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.categoryTitle {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.categoryStats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.categoryStatRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.categoryStatLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.categoryName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #d1d5db;
+}
+
+.categoryCount {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.progressBar {
+  height: 0.5rem;
+  width: 100%;
+  background: #1f2937;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.7s ease-out;
+}
+
+.main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+}
+
+.section {
+  animation: fadeIn 0.7s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.sectionBar {
+  height: 2.5rem;
+  width: 0.375rem;
+  border-radius: 9999px;
+  background: linear-gradient(to bottom, #3b82f6, #06b6d4);
+}
+
+.sectionBarRed {
+  background: linear-gradient(to bottom, #ef4444, #f97316);
+}
+
+.sectionBarGreen {
+  background: linear-gradient(to bottom, #22c55e, #10b981);
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+}
+
+.sectionSubtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.subjectsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .subjectsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .subjectsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.subjectCard {
+  position: relative;
+  border-radius: 1rem;
+  border: 1px solid;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.subjectCard:hover {
+  transform: scale(1.02);
+}
+
+.subjectCardHeader {
+  padding: 1.5rem;
+  cursor: pointer;
+}
+
+.subjectCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.subjectInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.subjectIconBox {
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(31, 41, 55, 0.8);
+}
+
+.subjectIcon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.subjectTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+}
+
+.subjectTopicCount {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+.subjectActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.percentBadge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.percentText {
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: #a855f7;
+}
+
+.chevron {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #9ca3af;
+  transition: transform 0.3s;
+}
+
+.chevronRotated {
+  transform: rotate(180deg);
+}
+
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.progressLabelLeft {
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.progressLabelRight {
+  color: #6b7280;
+}
+
+.subjectCardBody {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.5s ease-in-out;
+}
+
+.subjectCardBodyExpanded {
+  max-height: 200rem;
+  opacity: 1;
+}
+
+.topicsContainer {
+  padding: 0 0.75rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.topicCard {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: rgba(17, 24, 39, 0.4);
+  border: 1px solid rgba(31, 41, 55, 0.5);
+}
+
+.topicHeader {
+  padding: 0.875rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.topicHeader:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.topicInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.topicName {
+  color: #e5e7eb;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.topicBadge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: rgba(168, 85, 247, 0.2);
+  color: #d8b4fe;
+}
+
+.topicChevron {
+  width: 1rem;
+  height: 1rem;
+  color: #6b7280;
+  transition: transform 0.3s;
+}
+
+.topicChevronRotated {
+  transform: rotate(90deg);
+}
+
+.subtopicsContainer {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.subtopicItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  cursor: pointer;
+  background: rgba(31, 41, 55, 0.3);
+  border: 1px solid transparent;
+}
+
+.subtopicItem:hover {
+  background: rgba(55, 65, 81, 0.4);
+  border-color: rgba(75, 85, 99, 0.5);
+}
+
+.subtopicItemCompleted {
+  background: linear-gradient(to right, rgba(34, 197, 94, 0.15), rgba(16, 185, 129, 0.1));
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.subtopicContent {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.subtopicIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.subtopicIconComplete {
+  color: #22c55e;
+}
+
+.subtopicIconIncomplete {
+  color: #4b5563;
+}
+
+.subtopicText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.subtopicTextComplete {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.subtopicTextIncomplete {
+  color: #e5e7eb;
+}
+
+.loader {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1d2e 0%, #16182a 50%, #1a1d2e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loaderContent {
+  text-align: center;
+}
+
+.spinnerIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #a855f7;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loaderText {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}

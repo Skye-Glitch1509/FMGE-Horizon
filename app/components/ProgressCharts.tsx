@@ -1,20 +1,11 @@
 "use client";
-import React from "react";
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+
+import React from 'react';
+
+interface Session {
+  date: string;
+  amount: number;
+}
 
 interface Subject {
   name: string;
@@ -28,209 +19,138 @@ interface Subject {
   mcqDone: number;
   resource: string;
   resourceRating: number;
-  mcqSessions: Array<{ date: string; amount: number }>;
+  mcqSessions: Session[];
 }
 
-interface ProgressChartsProps {
+interface Props {
   subjects: Subject[];
   wellness: number[];
   streak: number;
-  mcqGoal: number; // <-- FIXED: added this line
+  mcqGoal: number;
 }
 
-export default function ProgressCharts({
-  subjects,
-  wellness,
-  streak,
-  mcqGoal,
-}: ProgressChartsProps) {
-  // Chart 1: MCQ Progress by Subject
-  const mcqData = subjects.map((s) => ({
-    name: s.name,
-    done: s.mcqDone,
-    total: s.mcqTotal,
-  }));
-
-  // Chart 2: Streak Trend (last 7 days)
-  const streakData = [
-    { day: "Day 1", streak: Math.max(0, streak - 6) },
-    { day: "Day 2", streak: Math.max(0, streak - 5) },
-    { day: "Day 3", streak: Math.max(0, streak - 4) },
-    { day: "Day 4", streak: Math.max(0, streak - 3) },
-    { day: "Day 5", streak: Math.max(0, streak - 2) },
-    { day: "Day 6", streak: Math.max(0, streak - 1) },
-    { day: "Today", streak },
-  ];
-
-  // Chart 3: Subject Completion
-  const completionData = [
-    {
-      name: "Completed",
-      value: subjects.filter((s) => s.completed).length,
-    },
-    {
-      name: "In Progress",
-      value: subjects.filter((s) => !s.completed).length,
-    },
-  ];
-
-  // Chart 4: Weekly Wellness Trend
-  const wellnessData = wellness.map((w, i) => ({
-    day: `Day ${i + 1}`,
-    wellness: w,
-  }));
-
-  const COLORS = ["#43ea8f", "#2352a1", "#ffba1a", "#fe3292", "#29feef"];
+export default function ProgressCharts({ subjects, wellness, streak, mcqGoal }: Props) {
+  const totalMCQ = subjects.reduce((sum, s) => sum + s.mcqTotal, 0);
+  const doneMCQ = subjects.reduce((sum, s) => sum + s.mcqDone, 0);
+  const completedSubjects = subjects.filter(s => s.completed).length;
+  
+  // Calculate MCQs per day over last 7 days
+  const last7Days = [...Array(7)].map((_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - i));
+    return date.toISOString().slice(0, 10);
+  });
+  
+  const mcqByDay = last7Days.map(day => {
+    let total = 0;
+    subjects.forEach(subj => {
+      const sessions = subj.mcqSessions.filter(s => s.date === day);
+      sessions.forEach(s => total += s.amount);
+    });
+    return { date: day, count: total };
+  });
+  
+  const maxMCQs = Math.max(...mcqByDay.map(d => d.count), 1);
+  const avgWellness = (wellness.reduce((a, b) => a + b, 0) / wellness.length).toFixed(1);
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(500px, 1fr))",
-        gap: "30px",
-        marginBottom: "40px",
-      }}
-    >
-      {/* MCQ Chart */}
-      <div
-        style={{
-          background: "#151624",
-          padding: "20px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(34, 70, 190, 0.1)",
-        }}
-      >
-        <h3 style={{ color: "#c4d7fd", marginBottom: "15px" }}>
-          📝 MCQ Progress by Subject
-        </h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={mcqData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#232942" />
-            <XAxis dataKey="name" stroke="#b8cdf1" />
-            <YAxis stroke="#b8cdf1" />
-            <Tooltip
-              contentStyle={{
-                background: "#18192b",
-                border: "1px solid #232942",
-                color: "#efeff5",
-              }}
-            />
-            <Legend />
-            <Bar dataKey="done" fill="#43ea8f" name="Done" />
-            <Bar dataKey="total" fill="#2352a1" name="Total" />
-          </BarChart>
-        </ResponsiveContainer>
-        <div style={{marginTop: "12px", color: "#ffba1a", fontWeight: "bold"}}>
-          📊 Your Weekly Goal: {mcqGoal} MCQs
+    <div style={{ color: '#efeff5', maxWidth: '900px', margin: '0 auto' }}>
+      <h1 style={{ fontSize: '2rem', marginBottom: '30px', color: '#c4d7fd' }}>
+        📊 Progress Analytics
+      </h1>
+      
+      {/* Stats Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+        <div style={{ background: '#18192b', padding: '20px', borderRadius: '12px', border: '1px solid #232942' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#43ea8f' }}>{doneMCQ}</div>
+          <div style={{ color: '#b8cdf1', marginTop: '5px' }}>MCQs Completed</div>
+          <div style={{ fontSize: '0.9rem', color: '#7a8194', marginTop: '3px' }}>out of {totalMCQ}</div>
+        </div>
+        
+        <div style={{ background: '#18192b', padding: '20px', borderRadius: '12px', border: '1px solid #232942' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#2352a1' }}>{completedSubjects}</div>
+          <div style={{ color: '#b8cdf1', marginTop: '5px' }}>Subjects Done</div>
+          <div style={{ fontSize: '0.9rem', color: '#7a8194', marginTop: '3px' }}>out of {subjects.length}</div>
+        </div>
+        
+        <div style={{ background: '#18192b', padding: '20px', borderRadius: '12px', border: '1px solid #232942' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#ffba1a' }}>{streak}</div>
+          <div style={{ color: '#b8cdf1', marginTop: '5px' }}>Day Streak</div>
+          <div style={{ fontSize: '0.9rem', color: '#7a8194', marginTop: '3px' }}>Keep it up! 🔥</div>
+        </div>
+        
+        <div style={{ background: '#18192b', padding: '20px', borderRadius: '12px', border: '1px solid #232942' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#29feef' }}>{avgWellness}</div>
+          <div style={{ color: '#b8cdf1', marginTop: '5px' }}>Avg Wellness</div>
+          <div style={{ fontSize: '0.9rem', color: '#7a8194', marginTop: '3px' }}>Last 7 days</div>
         </div>
       </div>
-
-      {/* Streak Chart */}
-      <div
-        style={{
-          background: "#151624",
-          padding: "20px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(34, 70, 190, 0.1)",
-        }}
-      >
-        <h3 style={{ color: "#c4d7fd", marginBottom: "15px" }}>
-          🔥 Study Streak Trend
-        </h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={streakData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#232942" />
-            <XAxis dataKey="day" stroke="#b8cdf1" />
-            <YAxis stroke="#b8cdf1" />
-            <Tooltip
-              contentStyle={{
-                background: "#18192b",
-                border: "1px solid #232942",
-                color: "#efeff5",
-              }}
-            />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="streak"
-              stroke="#ffba1a"
-              strokeWidth={2}
-              name="Days"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+      
+      {/* MCQ Progress by Day */}
+      <div style={{ background: '#18192b', padding: '25px', borderRadius: '12px', border: '1px solid #232942', marginBottom: '30px' }}>
+        <h2 style={{ fontSize: '1.3rem', marginBottom: '20px', color: '#c4d7fd' }}>
+          📈 MCQ Activity (Last 7 Days)
+        </h2>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '15px', height: '200px' }}>
+          {mcqByDay.map((day, i) => {
+            const height = (day.count / maxMCQs) * 100;
+            return (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                <div style={{ fontSize: '0.85rem', color: '#b8cdf1', fontWeight: 'bold' }}>{day.count}</div>
+                <div style={{ width: '100%', height: `${height}%`, minHeight: day.count > 0 ? '10px' : '2px', background: day.count >= mcqGoal/7 ? '#43ea8f' : '#2352a1', borderRadius: '6px 6px 0 0', transition: 'height 0.3s' }}></div>
+                <div style={{ fontSize: '0.75rem', color: '#7a8194', marginTop: '5px' }}>
+                  {new Date(day.date).toLocaleDateString('en', { weekday: 'short' })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: '15px', fontSize: '0.9rem', color: '#7a8194' }}>
+          Goal: {Math.round(mcqGoal/7)} MCQs/day
+        </div>
       </div>
-
-      {/* Completion Chart */}
-      <div
-        style={{
-          background: "#151624",
-          padding: "20px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(34, 70, 190, 0.1)",
-        }}
-      >
-        <h3 style={{ color: "#c4d7fd", marginBottom: "15px" }}>
-          ✅ Subject Completion Status
-        </h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={completionData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={({ name, value }) => `${name}: ${value}`}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey="value"
-            >
-              {completionData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                background: "#18192b",
-                border: "1px solid #232942",
-                color: "#efeff5",
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+      
+      {/* Wellness Trend */}
+      <div style={{ background: '#18192b', padding: '25px', borderRadius: '12px', border: '1px solid #232942', marginBottom: '30px' }}>
+        <h2 style={{ fontSize: '1.3rem', marginBottom: '20px', color: '#c4d7fd' }}>
+          🧠 Wellness Trend (Last 7 Days)
+        </h2>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '15px', height: '150px' }}>
+          {wellness.map((val, i) => {
+            const height = (val / 5) * 100;
+            const color = val <= 2 ? '#fe3292' : val === 3 ? '#ffba1a' : '#43ea8f';
+            return (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                <div style={{ fontSize: '0.85rem', color, fontWeight: 'bold' }}>{val}</div>
+                <div style={{ width: '100%', height: `${height}%`, minHeight: '10px', background: color, borderRadius: '6px 6px 0 0', transition: 'height 0.3s' }}></div>
+                <div style={{ fontSize: '0.75rem', color: '#7a8194', marginTop: '5px' }}>
+                  Day {i + 1}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-
-      {/* Wellness Chart */}
-      <div
-        style={{
-          background: "#151624",
-          padding: "20px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(34, 70, 190, 0.1)",
-        }}
-      >
-        <h3 style={{ color: "#c4d7fd", marginBottom: "15px" }}>
-          🧠 Weekly Wellness Trend
-        </h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={wellnessData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#232942" />
-            <XAxis dataKey="day" stroke="#b8cdf1" />
-            <YAxis stroke="#b8cdf1" domain={[0, 5]} />
-            <Tooltip
-              contentStyle={{
-                background: "#18192b",
-                border: "1px solid #232942",
-                color: "#efeff5",
-              }}
-            />
-            <Legend />
-            <Bar dataKey="wellness" fill="#29feef" name="Wellness Score" />
-          </BarChart>
-        </ResponsiveContainer>
+      
+      {/* Subject Breakdown */}
+      <div style={{ background: '#18192b', padding: '25px', borderRadius: '12px', border: '1px solid #232942' }}>
+        <h2 style={{ fontSize: '1.3rem', marginBottom: '20px', color: '#c4d7fd' }}>
+          📚 Subject Progress Breakdown
+        </h2>
+        {subjects.slice(0, 10).map((subj, i) => {
+          const percent = subj.mcqTotal > 0 ? Math.round((subj.mcqDone / subj.mcqTotal) * 100) : 0;
+          return (
+            <div key={i} style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ color: '#b8cdf1', fontWeight: 'bold' }}>{subj.name}</span>
+                <span style={{ color: '#7a8194' }}>{subj.mcqDone} / {subj.mcqTotal} ({percent}%)</span>
+              </div>
+              <div style={{ background: '#151624', borderRadius: '8px', padding: '4px', height: '20px' }}>
+                <div style={{ height: '100%', width: `${percent}%`, background: subj.color || '#2352a1', borderRadius: '6px', transition: 'width 0.5s' }}></div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
