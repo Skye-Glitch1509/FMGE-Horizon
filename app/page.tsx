@@ -145,12 +145,6 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* Features, CTA, Footer ... (as in your original code, unchanged) */}
-      {/* ... keep the rest of your code ... */}
-
-    </div>
-  );
-
       {/* Features Section */}
       <div style={{ background: 'rgba(24, 25, 43, 0.4)', borderTop: '1px solid #232942', borderBottom: '1px solid #232942' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '100px 24px' }}>
@@ -304,4 +298,6 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+    </div>
+  );
 }
