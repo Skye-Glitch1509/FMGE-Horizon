@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { BookOpen, Calendar, Target, TrendingUp, Zap, BarChart3, Brain, Award } from 'lucide-react';
+import { BookOpen, Calendar, Target, TrendingUp, Zap, BarChart3, Brain, Award, HelpCircle } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -31,6 +31,13 @@ export default function LandingPage() {
               style={{ padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #2352a1, #43ea8f)', color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: 600, transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(35, 82, 161, 0.3)' }}
             >
               Syllabus Tracker
+            </Link>
+            <Link 
+              href="/prioritizer"
+              style={{ padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #43ea8f, #2352a1 80%)', color: '#0f111a', textDecoration: 'none', fontSize: '14px', fontWeight: 600, transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(67, 234, 143, 0.25)', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <HelpCircle style={{ width: '18px', height: '18px' }} />
+              Diagnostic Quiz
             </Link>
           </div>
         </div>
@@ -77,7 +84,6 @@ export default function LandingPage() {
             <Calendar style={{ width: '22px', height: '22px' }} />
             Launch Study Planner
           </Link>
-          
           <Link 
             href="/syllabus"
             style={{
@@ -97,6 +103,26 @@ export default function LandingPage() {
           >
             <BookOpen style={{ width: '22px', height: '22px' }} />
             View Syllabus
+          </Link>
+          <Link
+            href="/prioritizer"
+            style={{
+              padding: '18px 36px',
+              background: 'linear-gradient(135deg, #43ea8f, #2352a1 80%)',
+              color: '#0f111a',
+              borderRadius: '12px',
+              fontSize: '18px',
+              fontWeight: 'bold',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '10px',
+              transition: 'all 0.3s',
+              boxShadow: '0 8px 24px rgba(67, 234, 143, 0.32)'
+            }}
+          >
+            <HelpCircle style={{ width: '22px', height: '22px' }} />
+            Take Diagnostic Quiz
           </Link>
         </div>
 
@@ -118,6 +144,13 @@ export default function LandingPage() {
           })}
         </div>
       </div>
+
+      {/* Features, CTA, Footer ... (as in your original code, unchanged) */}
+      {/* ... keep the rest of your code ... */}
+
+    </div>
+  );
+}
 
       {/* Features Section */}
       <div style={{ background: 'rgba(24, 25, 43, 0.4)', borderTop: '1px solid #232942', borderBottom: '1px solid #232942' }}>
@@ -272,6 +305,3 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
-    </div>
-  );
-}

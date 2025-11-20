@@ -4,6 +4,7 @@ import React, { useState, FormEvent, useEffect } from "react";
 import Link from 'next/link';
 import { Home, BookOpen, Calendar } from 'lucide-react';
 import ProgressCharts from "../components/ProgressCharts";
+import MotivationCard from '../components/MotivationCard'; // NEW - import MotivationCard
 
 interface Session {
   date: string;
@@ -61,7 +62,7 @@ export default function PlannerDashboard() {
   // Load data from localStorage
   useEffect(() => {
     setMounted(true);
-    
+
     const savedSubjects = localStorage.getItem('planner-subjects-full');
     const savedWellness = localStorage.getItem('planner-wellness');
     const savedStreak = localStorage.getItem('planner-streak');
@@ -187,7 +188,7 @@ export default function PlannerDashboard() {
     }
   };
 
-  // Browser Notifications
+  // Notifications
   const requestNotificationPermission = async () => {
     if (!("Notification" in window)) {
       alert("This browser does not support notifications");
@@ -209,7 +210,6 @@ export default function PlannerDashboard() {
     alert(`Reminder set for ${reminderTime} daily`);
   };
 
-  // Check reminders (in a real app, use service workers)
   useEffect(() => {
     if (!reminderEnabled || !mounted) return;
 
@@ -220,7 +220,6 @@ export default function PlannerDashboard() {
       reminderDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
       const diff = Math.abs(now.getTime() - reminderDate.getTime());
-      
       if (diff < 60000) { // Within 1 minute
         if (Notification.permission === "granted") {
           new Notification("FMGE Study Reminder", {
@@ -364,8 +363,7 @@ export default function PlannerDashboard() {
 
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #0f111a, #151624)", color: "#efeff5", fontFamily: "system-ui, sans-serif", padding: "0" }}>
-      
-      {/* Professional Navigation Bar */}
+      {/* Navigation Bar */}
       <nav style={{ borderBottom: '1px solid #232942', background: 'rgba(24, 25, 43, 0.95)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 1000 }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none' }}>
@@ -423,6 +421,8 @@ export default function PlannerDashboard() {
       </nav>
 
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "20px" }}>
+        {/* MotivationCard - integrate at the top */}
+        <MotivationCard />
         
         {/* PWA Install Banner */}
         {showPWAPrompt && (
