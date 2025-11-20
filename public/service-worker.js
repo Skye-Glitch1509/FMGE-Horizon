@@ -1,11 +1,12 @@
-const CACHE_NAME = 'fmge-planner-v1';
+const CACHE_NAME = 'fmge-planner-v2'; // bump this version every time you deploy!
 const urlsToCache = [
   '/',
   '/index.html',
   '/favicon.ico',
+  // Add other static files if needed
 ];
 
-// Install event - cache static assets
+// Install event - cache static assets and activate new SW instantly
 self.addEventListener('install', event => {
   console.log('Service Worker installing...');
   event.waitUntil(
@@ -15,10 +16,10 @@ self.addEventListener('install', event => {
       });
     })
   );
-  self.skipWaiting();
+  self.skipWaiting(); // Forces new SW to activate immediately
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and claim clients
 self.addEventListener('activate', event => {
   console.log('Service Worker activating...');
   event.waitUntil(
@@ -32,10 +33,10 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  self.clients.claim();
+  self.clients.claim(); // Take control without refresh
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - serve from cache, fallback to network and update cache
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
@@ -43,25 +44,32 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(response => {
       if (response) return response;
 
-      return fetch(event.request).then(response => {
-        if (!response || response.status !== 200 || response.type === 'error') {
-          return response;
+      // Fallback to network
+      return fetch(event.request).then(networkResponse => {
+        if (
+          !networkResponse ||
+          networkResponse.status !== 200 ||
+          networkResponse.type === 'error'
+        ) {
+          return networkResponse;
         }
 
-        const responseToCache = response.clone();
+        // Update cache with new files
+        const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then(cache => {
           cache.put(event.request, responseToCache);
         });
 
-        return response;
+        return networkResponse;
       }).catch(() => {
+        // Optional: fallback to homepage for navigation requests on error
         return caches.match('/');
       });
     })
   );
 });
 
-// Push notification event
+// Push notification event (leave for future use)
 self.addEventListener('push', event => {
   console.log('Push notification received:', event);
   if (!event.data) return;
@@ -75,8 +83,8 @@ self.addEventListener('push', event => {
     requireInteraction: true,
     actions: [
       { action: 'open', title: 'Open App' },
-      { action: 'close', title: 'Dismiss' }
-    ]
+      { action: 'close', title: 'Dismiss' },
+    ],
   };
 
   event.waitUntil(
@@ -87,7 +95,6 @@ self.addEventListener('push', event => {
 // Handle notification click
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-
   if (event.action === 'close') return;
 
   event.waitUntil(
@@ -104,3 +111,10 @@ self.addEventListener('notificationclick', event => {
     })
   );
 });
+
+/* Extra: In your main app (index.js/ts), to force reload on SW change */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', function() {
+    window.location.reload();
+  });
+}
