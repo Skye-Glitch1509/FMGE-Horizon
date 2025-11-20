@@ -832,7 +832,7 @@ export default function SyllabusPage() {
           </div>
           <div>
             <h1 style={{ fontSize: '36px', fontWeight: 'bold', color: 'white', margin: 0 }}>FMGE Syllabus Tracker</h1>
-            <p style={{ color: '#9ca3af', marginTop: '4px', fontSize: '14px' }}>Master all 19 subjects • Track every topic • Only High Yield Topics from Past 10 Years Papers are included in this syllabus</p>
+            <p style={{ color: '#9ca3af', marginTop: '4px', fontSize: '14px' }}>Master all 19 subjects • Track every topic • Only Topics from Past 10 Years Papers are included in this syllabus</p>
           </div>
         </div>
 
