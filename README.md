@@ -8,7 +8,7 @@ Features you'll love:
 
 📅 Smart Study Planner — Organize your schedule and set daily targets.
 
-📖 Syllabus Tracker — Master all 19 subjects and 271 topics with a visual checklist.
+📖 Syllabus Tracker — Master all 19 subjects and 741 topics with a visual checklist.
 
 🤔 Diagnostic Quiz — Instantly identify your strong and weak subjects for personalized study.
 
