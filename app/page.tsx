@@ -131,7 +131,7 @@ export default function LandingPage() {
           {[
             { number: '741', label: 'Total Topics', icon: Target },
             { number: '19', label: 'Subject Areas', icon: BookOpen },
-            { number: '100%', label: 'Local Storage = Privacy', icon: Zap }
+            { number: '100% Privacy', label: 'Local Storage', icon: Zap }
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (
