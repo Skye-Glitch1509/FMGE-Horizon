@@ -150,7 +150,6 @@ export default function LandingPage() {
 
     </div>
   );
-}
 
       {/* Features Section */}
       <div style={{ background: 'rgba(24, 25, 43, 0.4)', borderTop: '1px solid #232942', borderBottom: '1px solid #232942' }}>
@@ -305,3 +304,4 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+}
