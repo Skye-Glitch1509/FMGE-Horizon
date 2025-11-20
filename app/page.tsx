@@ -129,9 +129,9 @@ export default function LandingPage() {
         {/* Stats Bar */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', maxWidth: '900px', margin: '0 auto' }}>
           {[
-            { number: '271', label: 'Total Topics', icon: Target },
+            { number: '741', label: 'Total Topics', icon: Target },
             { number: '19', label: 'Subject Areas', icon: BookOpen },
-            { number: '100%', label: 'Offline Support', icon: Zap }
+            { number: '100%', label: 'Local Storage = Privacy', icon: Zap }
           ].map((stat, i) => {
             const Icon = stat.icon;
             return (
