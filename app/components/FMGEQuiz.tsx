@@ -13,7 +13,6 @@ interface SubjectScores {
 }
 
 const FMGEQuiz: React.FC = () => {
-  // Prepare questions in subject order
   const questions = quizSubjects.flatMap(sub =>
     quizQuestions.filter(q => q.subject === sub.slug)
   );
@@ -23,7 +22,6 @@ const FMGEQuiz: React.FC = () => {
   const [done, setDone] = useState(false);
   const total = questions.length;
 
-  // Handle answer selection
   const handleSelect = (optionIdx: number) => {
     setAnswers(prev => ({
       ...prev,
@@ -31,13 +29,11 @@ const FMGEQuiz: React.FC = () => {
     }));
   };
 
-  // Next question
   const next = () => {
     if (current < total - 1) setCurrent(current + 1);
     else setDone(true);
   };
 
-  // Scores
   const getScores = (): SubjectScores => {
     const scores: SubjectScores = {};
     quizSubjects.forEach(sub => {
@@ -55,13 +51,9 @@ const FMGEQuiz: React.FC = () => {
     return scores;
   };
 
-  // Prioritization
   const scores = getScores();
-  // Sort for weakest list
   const weakest = [...quizSubjects].sort((a, b) => scores[a.slug] - scores[b.slug]);
-  // High yield filter
   const weakestHighYield = weakest.filter(s => s.highYield);
-  // Conceptual filter
   const weakestConceptual = weakest.filter(s => s.conceptual);
 
   if (!done) {
@@ -116,23 +108,23 @@ const FMGEQuiz: React.FC = () => {
           {`Question ${current + 1} of ${total}`}
         </div>
         <div style={{ marginTop: '32px', textAlign: 'center' }}>
-  <Link 
-    href="/"
-    style={{
-      padding: '14px 36px',
-      background: 'linear-gradient(135deg, #2352a1, #43ea8f)',
-      color: 'white',
-      borderRadius: '10px',
-      fontWeight: 'bold',
-      fontSize: '18px',
-      textDecoration: 'none',
-      boxShadow: '0 4px 24px #23294240',
-      display: 'inline-block'
-    }}
-  >
-    ← Go to Home
-  </Link>
-</div>
+          <Link 
+            href="/"
+            style={{
+              padding: '14px 36px',
+              background: 'linear-gradient(135deg, #2352a1, #43ea8f)',
+              color: 'white',
+              borderRadius: '10px',
+              fontWeight: 'bold',
+              fontSize: '18px',
+              textDecoration: 'none',
+              boxShadow: '0 4px 24px #23294240',
+              display: 'inline-block'
+            }}
+          >
+            ← Go to Home
+          </Link>
+        </div>
       </div>
     );
   }
@@ -178,6 +170,24 @@ const FMGEQuiz: React.FC = () => {
             </li>
           ))}
         </ul>
+      </div>
+      <div style={{ marginTop: '32px', textAlign: 'center' }}>
+        <Link
+          href="/"
+          style={{
+            padding: '14px 36px',
+            background: 'linear-gradient(135deg, #2352a1, #43ea8f)',
+            color: 'white',
+            borderRadius: '10px',
+            fontWeight: 'bold',
+            fontSize: '18px',
+            textDecoration: 'none',
+            boxShadow: '0 4px 24px #23294240',
+            display: 'inline-block'
+          }}
+        >
+          ← Go to Home
+        </Link>
       </div>
     </div>
   );
