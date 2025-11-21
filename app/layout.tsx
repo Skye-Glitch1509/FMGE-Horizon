@@ -16,16 +16,24 @@ export default function RootLayout({
       <head>
         {/* Mobile viewport for proper scaling and no zoom */}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* PWA Manifest and Icons */}
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon.jpg" type="image/jpeg" />
+        <link rel="apple-touch-icon" href="/icon-192.jpg" />
+        <meta name="theme-color" content="#43ea8f" />
+        {/* Optional: Add title/description here or let Next.js metadata handle it */}
       </head>
-      <body style={{
-        minHeight: '100vh',
-        minWidth: 0,
-        width: '100vw',
-        overflowX: 'hidden',
-        background: 'linear-gradient(135deg, #0f111a, #151624)',
-        color: '#efeff5',
-        WebkitOverflowScrolling: 'touch' // enables smooth scrolling iOS
-      }}>
+      <body
+        style={{
+          minHeight: '100vh',
+          minWidth: 0,
+          width: '100vw',
+          overflowX: 'hidden',
+          background: 'linear-gradient(135deg, #0f111a, #151624)',
+          color: '#efeff5',
+          WebkitOverflowScrolling: 'touch' // enables smooth scrolling iOS
+        }}
+      >
         <div
           style={{
             minHeight: '100vh',
