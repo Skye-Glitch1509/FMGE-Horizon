@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Admin/FMGE-Horizon/app/globals.css"],"sourcesContent":["* {\r\n  margin: 0;\r\n  padding: 0;\r\n  box-sizing: border-box;\r\n}\r\n\r\nhtml, body {\r\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;\r\n  background: #0f111a;\r\n  color: #efeff5;\r\n  overflow-x: hidden;\r\n}\r\n\r\n@keyframes spin {\r\n  from { transform: rotate(0deg); }\r\n  to { transform: rotate(360deg); }\r\n}\r\n\r\n@keyframes fadeIn {\r\n  from { opacity: 0; transform: translateY(20px); }\r\n  to { opacity: 1; transform: translateY(0); }\r\n}\r\n"],"names":[],"mappings":"AAAA;;;;;;AAMA;;;;;;;AAOA;;;;;;;;;;AAKA"}}]
+}

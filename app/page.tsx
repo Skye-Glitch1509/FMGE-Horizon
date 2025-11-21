@@ -71,85 +71,106 @@ export default function LandingPage() {
 
         {/* CTA Buttons */}
         <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '80px' }}>
-          <Link
-            href="/planner"
-            style={{
-              padding: '18px 36px',
-              background: 'linear-gradient(135deg, #2352a1, #1a4080)',
-              color: 'white',
-              borderRadius: '12px',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '10px',
-              transition: 'all 0.3s',
-              boxShadow: '0 8px 24px rgba(35, 82, 161, 0.4)'
-            }}
-          >
-            <Calendar style={{ width: '22px', height: '22px' }} />
-            Launch Study Planner
-          </Link>
-          <Link
-            href="/syllabus"
-            style={{
-              padding: '18px 36px',
-              background: 'rgba(24, 25, 43, 0.8)',
-              border: '2px solid rgba(67, 234, 143, 0.4)',
-              color: '#43ea8f',
-              borderRadius: '12px',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '10px',
-              transition: 'all 0.3s'
-            }}
-          >
-            <BookOpen style={{ width: '22px', height: '22px' }} />
-            View Syllabus
-          </Link>
-          <Link
-            href="/prioritizer"
-            style={{
-              padding: '18px 36px',
-              background: 'linear-gradient(135deg, #43ea8f, #2352a1 80%)',
-              color: '#0f111a',
-              borderRadius: '12px',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '10px',
-              transition: 'all 0.3s',
-              boxShadow: '0 8px 24px rgba(67, 234, 143, 0.32)'
-            }}
-          >
-            <HelpCircle style={{ width: '22px', height: '22px' }} />
-            Take Diagnostic Quiz
-          </Link>
-        </div>
+  <Link
+    href="/planner"
+    style={{
+      padding: '18px 36px',
+      background: 'linear-gradient(135deg, #2352a1, #1a4080)',
+      color: 'white',
+      borderRadius: '12px',
+      fontSize: '18px',
+      fontWeight: 'bold',
+      textDecoration: 'none',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '10px',
+      transition: 'all 0.3s',
+      boxShadow: '0 8px 24px rgba(35, 82, 161, 0.4)'
+    }}
+  >
+    <Calendar style={{ width: '22px', height: '22px' }} />
+    Launch Study Planner
+  </Link>
+  <Link
+    href="/syllabus"
+    style={{
+      padding: '18px 36px',
+      background: 'rgba(24, 25, 43, 0.8)',
+      border: '2px solid rgba(67, 234, 143, 0.4)',
+      color: '#43ea8f',
+      borderRadius: '12px',
+      fontSize: '18px',
+      fontWeight: 'bold',
+      textDecoration: 'none',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '10px',
+      transition: 'all 0.3s'
+    }}
+  >
+    <BookOpen style={{ width: '22px', height: '22px' }} />
+    View Syllabus
+  </Link>
+  <Link
+    href="/prioritizer"
+    style={{
+      padding: '18px 36px',
+      background: 'linear-gradient(135deg, #ffdb92, #fc4198 80%)',
+      color: '#0f111a',
+      borderRadius: '12px',
+      fontSize: '18px',
+      fontWeight: 'bold',
+      textDecoration: 'none',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '10px',
+      transition: 'all 0.3s',
+      boxShadow: '0 8px 24px rgba(252, 65, 152, 0.16)'
+    }}
+  >
+    <HelpCircle style={{ width: '22px', height: '22px' }} />
+    Take Diagnostic Quiz
+  </Link>
+  <Link
+    href="/daily-quiz"
+    style={{
+      padding: '18px 36px',
+      background: 'linear-gradient(135deg, #43ea8f, #2352a1 80%)',
+      color: '#0f111a',
+      borderRadius: '12px',
+      fontSize: '18px',
+      fontWeight: 'bold',
+      textDecoration: 'none',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '10px',
+      transition: 'all 0.3s',
+      boxShadow: '0 8px 24px rgba(67, 234, 143, 0.32)'
+    }}
+  >
+    <Target style={{ width: '22px', height: '22px' }} />
+    Daily Quiz
+  </Link>
+</div>
 
-        {/* Stats Bar */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', maxWidth: '900px', margin: '0 auto' }}>
-          {[
-            { number: '741', label: 'Total Topics', icon: Target },
-            { number: '19', label: 'Subject Areas', icon: BookOpen },
-            { number: '100% Privacy', label: 'Local Storage', icon: Zap }
-          ].map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <div key={i} style={{ background: 'rgba(24, 25, 43, 0.6)', border: '1px solid #232942', borderRadius: '12px', padding: '24px', textAlign: 'center' }}>
-                <Icon style={{ width: '24px', height: '24px', color: '#43ea8f', margin: '0 auto 12px' }} />
-                <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>{stat.number}</div>
-                <div style={{ fontSize: '14px', color: '#7a8194' }}>{stat.label}</div>
-              </div>
-            );
-          })}
-        </div>
+      </div>
+
+      {/* Stats Bar */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px', maxWidth: '900px', margin: '0 auto', padding: '0 24px 80px' }}>
+        {[
+          { number: '741', label: 'Total Topics', icon: Target },
+          { number: '19', label: 'Subject Areas', icon: BookOpen },
+          { number: '100% Privacy', label: 'Local Storage', icon: Zap }
+        ].map((stat, i) => {
+          const Icon = stat.icon;
+          return (
+            <div key={i} style={{ background: 'rgba(24, 25, 43, 0.6)', border: '1px solid #232942', borderRadius: '12px', padding: '24px', textAlign: 'center' }}>
+              <Icon style={{ width: '24px', height: '24px', color: '#43ea8f', margin: '0 auto 12px' }} />
+              <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'white', marginBottom: '4px' }}>{stat.number}</div>
+              <div style={{ fontSize: '14px', color: '#7a8194' }}>{stat.label}</div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Features Section */}
