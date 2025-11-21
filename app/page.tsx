@@ -1,12 +1,19 @@
 "use client";
 
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { BookOpen, Calendar, Target, TrendingUp, Zap, BarChart3, Brain, Award, HelpCircle } from 'lucide-react';
+import { BookOpen, Calendar, Target, Zap, BarChart3, Brain, Award, HelpCircle } from 'lucide-react';
 
 export default function LandingPage() {
+  // Registering Service Worker for PWA install
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+  }, []);
+
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f111a 0%, #151624 50%, #0f111a 100%)', color: '#efeff5' }}>
-      
       {/* Navigation Bar */}
       <nav style={{ borderBottom: '1px solid #232942', background: 'rgba(24, 25, 43, 0.95)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 1000 }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -20,19 +27,19 @@ export default function LandingPage() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
-            <Link 
+            <Link
               href="/planner"
               style={{ padding: '10px 20px', borderRadius: '8px', background: 'rgba(35, 82, 161, 0.2)', border: '1px solid rgba(35, 82, 161, 0.5)', color: '#2352a1', textDecoration: 'none', fontSize: '14px', fontWeight: 600, transition: 'all 0.2s' }}
             >
               Study Planner
             </Link>
-            <Link 
+            <Link
               href="/syllabus"
               style={{ padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #2352a1, #43ea8f)', color: 'white', textDecoration: 'none', fontSize: '14px', fontWeight: 600, transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(35, 82, 161, 0.3)' }}
             >
               Syllabus Tracker
             </Link>
-            <Link 
+            <Link
               href="/prioritizer"
               style={{ padding: '10px 20px', borderRadius: '8px', background: 'linear-gradient(135deg, #43ea8f, #2352a1 80%)', color: '#0f111a', textDecoration: 'none', fontSize: '14px', fontWeight: 600, transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(67, 234, 143, 0.25)', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
@@ -48,7 +55,7 @@ export default function LandingPage() {
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: 'rgba(67, 234, 143, 0.1)', border: '1px solid rgba(67, 234, 143, 0.3)', borderRadius: '9999px', marginBottom: '32px' }}>
           <span style={{ fontSize: '12px', fontWeight: 700, color: '#43ea8f', textTransform: 'uppercase', letterSpacing: '1px' }}>✨ All-in-One FMGE Solution</span>
         </div>
-        
+
         <h1 style={{ fontSize: '72px', fontWeight: 'bold', color: 'white', marginBottom: '24px', lineHeight: '1.1', letterSpacing: '-2px' }}>
           Welcome to
           <br />
@@ -56,15 +63,15 @@ export default function LandingPage() {
             FMGE Horizon
           </span>
         </h1>
-        
+
         <p style={{ fontSize: '22px', color: '#b8cdf1', maxWidth: '700px', margin: '0 auto 48px', lineHeight: '1.6' }}>
-          Your comprehensive platform to plan, track, and conquer the FMGE exam. 
+          Your comprehensive platform to plan, track, and conquer the FMGE exam.
           Built by medical students, for medical students.
         </p>
 
         {/* CTA Buttons */}
         <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '80px' }}>
-          <Link 
+          <Link
             href="/planner"
             style={{
               padding: '18px 36px',
@@ -84,7 +91,7 @@ export default function LandingPage() {
             <Calendar style={{ width: '22px', height: '22px' }} />
             Launch Study Planner
           </Link>
-          <Link 
+          <Link
             href="/syllabus"
             style={{
               padding: '18px 36px',
@@ -156,7 +163,7 @@ export default function LandingPage() {
               Powerful features designed to make your FMGE preparation efficient and stress-free
             </p>
           </div>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
             {[
               {
@@ -204,13 +211,13 @@ export default function LandingPage() {
             ].map((feature, i) => {
               const Icon = feature.icon;
               return (
-                <div 
-                  key={i} 
-                  style={{ 
-                    background: feature.gradient, 
-                    border: `1px solid ${feature.color}40`, 
-                    borderRadius: '16px', 
-                    padding: '36px', 
+                <div
+                  key={i}
+                  style={{
+                    background: feature.gradient,
+                    border: `1px solid ${feature.color}40`,
+                    borderRadius: '16px',
+                    padding: '36px',
                     transition: 'all 0.3s',
                     cursor: 'pointer'
                   }}
@@ -223,16 +230,16 @@ export default function LandingPage() {
                     e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  <div style={{ 
-                    width: '56px', 
-                    height: '56px', 
-                    borderRadius: '14px', 
-                    background: `${feature.color}20`, 
-                    border: `1px solid ${feature.color}40`, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    marginBottom: '20px' 
+                  <div style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '14px',
+                    background: `${feature.color}20`,
+                    border: `1px solid ${feature.color}40`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '20px'
                   }}>
                     <Icon style={{ width: '28px', height: '28px', color: feature.color }} />
                   </div>
@@ -247,12 +254,12 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '100px 24px' }}>
-        <div style={{ 
-          background: 'linear-gradient(135deg, rgba(35, 82, 161, 0.2), rgba(67, 234, 143, 0.1))', 
-          border: '1px solid rgba(67, 234, 143, 0.3)', 
-          borderRadius: '24px', 
-          padding: '60px 40px', 
-          textAlign: 'center' 
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(35, 82, 161, 0.2), rgba(67, 234, 143, 0.1))',
+          border: '1px solid rgba(67, 234, 143, 0.3)',
+          borderRadius: '24px',
+          padding: '60px 40px',
+          textAlign: 'center'
         }}>
           <h2 style={{ fontSize: '42px', fontWeight: 'bold', color: 'white', marginBottom: '16px' }}>
             Ready to Transform Your FMGE Prep?
@@ -260,7 +267,7 @@ export default function LandingPage() {
           <p style={{ fontSize: '18px', color: '#b8cdf1', marginBottom: '32px', maxWidth: '600px', margin: '0 auto 32px' }}>
             Join thousands of medical students using FMGE Horizon to ace their exams
           </p>
-          <Link 
+          <Link
             href="/planner"
             style={{
               padding: '18px 42px',
