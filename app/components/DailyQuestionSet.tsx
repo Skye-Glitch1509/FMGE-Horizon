@@ -4,6 +4,8 @@ import Link from "next/link";
 import { psychiatryQuestions } from "../lib/psychiatryQuestions";
 import { psmQuestions } from "../lib/psmQuestions";
 import { anesthesiaQuestions } from "../lib/anesthesiaQuestions";
+import { pharmacologyQuestions } from "../lib/pharmacologyQuestions";
+import { physiologyQuestions } from "../lib/physiologyQuestions";
 // ...import other subjects as needed
 
 import { FMGEMCQ } from "../lib/types";
@@ -11,8 +13,10 @@ import { FMGEMCQ } from "../lib/types";
 const allQuestions: FMGEMCQ[] = [
   ...psychiatryQuestions,
   ...psmQuestions,
-  ...anesthesiaQuestions
-  // ...add more subjects here with "..."
+  ...anesthesiaQuestions,
+  ...pharmacologyQuestions,
+  ...physiologyQuestions
+   // ...add more subjects here with "..."
 ];
 
 function getTodayKey() {

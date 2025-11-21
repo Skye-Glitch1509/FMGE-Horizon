@@ -197,7 +197,7 @@ export default function LandingPage() {
               {
                 icon: BookOpen,
                 title: 'Complete Syllabus Tracker',
-                description: 'Master all 19 subjects with a comprehensive checklist of 271 topics across Clinical, Pre-Clinical, and Para-Clinical areas.',
+                description: 'Master all 19 subjects with a comprehensive checklist of 741 topics across Clinical, Pre-Clinical, and Para-Clinical areas.',
                 color: '#43ea8f',
                 gradient: 'linear-gradient(135deg, rgba(67, 234, 143, 0.1), rgba(67, 234, 143, 0.05))'
               },
