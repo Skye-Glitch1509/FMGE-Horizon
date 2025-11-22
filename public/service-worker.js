@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fmge-planner-v21'; // bump this version every time you deploy!
+const CACHE_NAME = 'fmge-planner-v22'; // bump this version every time you deploy!
 const urlsToCache = [
   '/',
   '/index.html',

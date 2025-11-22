@@ -6,6 +6,7 @@ import { psmQuestions } from "../lib/psmQuestions";
 import { anesthesiaQuestions } from "../lib/anesthesiaQuestions";
 import { pharmacologyQuestions } from "../lib/pharmacologyQuestions";
 import { physiologyQuestions } from "../lib/physiologyQuestions";
+import { pathologyQuestions } from "../lib/pathologyQuestions";
 // ...import other subjects as needed
 
 import { FMGEMCQ } from "../lib/types";
@@ -15,7 +16,8 @@ const allQuestions: FMGEMCQ[] = [
   ...psmQuestions,
   ...anesthesiaQuestions,
   ...pharmacologyQuestions,
-  ...physiologyQuestions
+  ...physiologyQuestions,
+  ...pathologyQuestions
    // ...add more subjects here with "..."
 ];
 
